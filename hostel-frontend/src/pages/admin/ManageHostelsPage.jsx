@@ -5,24 +5,24 @@ export default function ManageHostelsPage() {
   const mockFunction = () => toast.success('Action triggered in Demo Mode.');
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Manage Hostels</h1>
-          <p className="text-gray-500 mt-1">Define properties, capacity constraints, and designate wardens.</p>
+          <h1 className="font-serif text-4xl text-primary tracking-tight">Infrastructure Management</h1>
+          <p className="font-sans text-on-surface-variant mt-2 text-base">Define physical properties, capacity constraints, and designate authoritative personnel.</p>
         </div>
-        <button onClick={mockFunction} className="btn-primary py-2.5 px-5 flex items-center justify-center gap-2 whitespace-nowrap shadow-sm">
-          <Plus className="w-5 h-5" /> Add Hostel Wing
+        <button onClick={mockFunction} className="btn-primary py-3 px-6 shrink-0">
+          <span className="flex items-center gap-2"><Plus className="w-5 h-5" /> Append Infrastructure Unit</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-12 text-center text-gray-500 flex flex-col items-center">
-           <Building2 className="w-16 h-16 text-gray-200 mb-4" />
-           <p className="font-medium text-lg text-gray-900 mb-2">Hostel Infrastructure Data</p>
-           <p className="max-w-md mx-auto mb-6">Create the infrastructure database where allocations happen. This form relies heavily on the backend, thus stubbed in UI demo format.</p>
-           <button onClick={mockFunction} className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-colors">
-              Simulate Config Form
+      <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
+        <div className="p-16 text-center flex flex-col items-center">
+           <Building2 className="w-16 h-16 text-primary mb-6" />
+           <p className="font-serif font-bold text-2xl text-primary mb-3">Spatial Data Sub-System</p>
+           <p className="max-w-xl mx-auto text-on-surface-variant leading-relaxed mb-8">This portal manages the physical properties wherein allotments are finalized. Database linkages are currently stubbed in demo format.</p>
+           <button onClick={mockFunction} className="px-8 py-3.5 bg-surface-container hover:bg-surface-container-high text-on-surface border border-outline-variant/30 font-bold uppercase tracking-widest text-xs rounded-md transition-colors">
+              Simulate Configuration Tool
            </button>
         </div>
       </div>

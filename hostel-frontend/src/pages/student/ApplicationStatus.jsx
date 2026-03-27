@@ -16,14 +16,14 @@ export default function ApplicationStatus() {
   
   if (!app) {
     return (
-      <div className="max-w-2xl mx-auto text-center mt-12 bg-white rounded-2xl shadow-sm border border-gray-100 p-12">
-        <div className="mx-auto w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-6 border border-gray-100">
-          <FileText className="h-8 w-8 text-gray-400" />
+      <div className="max-w-2xl mx-auto text-center mt-12 card p-16">
+        <div className="mx-auto w-24 h-24 bg-surface-container-low rounded-full flex items-center justify-center mb-6">
+          <FileText className="h-10 w-10 text-primary" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">No Active Application</h2>
-        <p className="text-gray-500 mb-8 max-w-sm mx-auto">You do not currently have an active hostel application for this year.</p>
-        <Link to="/student/apply" className="btn-primary py-3 px-6 shadow-md shadow-blue-200">
-          Start Your Application
+        <h2 className="font-serif text-3xl font-bold text-primary mb-4">No Active Application</h2>
+        <p className="text-on-surface-variant text-base mb-10 max-w-sm mx-auto">You do not currently have an active official hostel application for this academic session.</p>
+        <Link to="/student/apply" className="btn-primary inline-flex">
+          Initiate New Application
         </Link>
       </div>
     );
@@ -37,84 +37,84 @@ export default function ApplicationStatus() {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Application Status</h1>
-        <p className="text-gray-500 mt-2">Track the live progress of your hostel accommodation request.</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="mb-8">
+        <h1 className="font-serif text-4xl text-primary tracking-tight">Application Tracker</h1>
+        <p className="font-sans text-on-surface-variant mt-2 text-base">Monitor the live progress and administrative status of your accommodation request.</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
         {/* Header Ribbon */}
-        <div className="bg-gray-50 border-b border-gray-100 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-surface-container-low border-b border-surface-container px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <p className="text-xs text-gray-500 font-medium uppercase tracking-wider mb-1">Application ID</p>
-            <p className="font-mono font-bold text-gray-900 text-lg">#{app.application_id}</p>
+            <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] mb-1.5">Dossier Reference</p>
+            <p className="font-mono font-bold text-primary text-xl">#{app.application_id}</p>
           </div>
-          <div className="flex items-center gap-3">
-             <span className="text-xs text-gray-500 font-medium whitespace-nowrap">Current Status</span>
+          <div className="flex items-center gap-4">
+             <span className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] whitespace-nowrap">Current Status</span>
              <StatusBadge status={app.status} />
           </div>
         </div>
 
-        <div className="p-6 lg:p-8">
+        <div className="p-8 lg:p-12">
           {/* Progress Flow */}
-          <div className="flex items-center justify-between mb-12 relative">
-            <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-100 -z-10 -translate-y-1/2 rounded-full"></div>
+          <div className="flex items-center justify-between mb-16 relative">
+            <div className="absolute top-1/2 left-0 w-full h-1 bg-surface-container -z-10 -translate-y-1/2 rounded-full"></div>
             
             {steps.map((step, idx) => (
-              <div key={step.name} className="flex flex-col items-center bg-white px-2 relative">
-                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 mb-2 ${
-                   step.status === 'Approved' ? 'bg-green-500 border-green-500 text-white shadow-sm shadow-green-200' :
-                   step.status === 'Rejected' ? 'bg-red-500 border-red-500 text-white shadow-sm shadow-red-200' :
-                   'bg-white border-gray-200 text-gray-300'
+              <div key={step.name} className="flex flex-col items-center bg-surface-container-lowest px-2 relative">
+                 <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 mb-3 transition-colors ${
+                   step.status === 'Approved' ? 'bg-primary border-primary text-white shadow-sm shadow-primary/20' :
+                   step.status === 'Rejected' ? 'bg-error border-error text-white shadow-sm shadow-error/20' :
+                   'bg-surface-container border-outline-variant/30 text-on-surface-variant'
                  }`}>
                    {step.status === 'Approved' ? <CheckCircle2 className="h-5 w-5" /> : 
                     step.status === 'Rejected' ? <XCircle className="h-5 w-5" /> :
-                    <span className="text-sm font-bold">{idx + 1}</span>}
+                    <span className="text-sm font-bold font-mono">{idx + 1}</span>}
                  </div>
                  <span className={`text-[11px] font-bold uppercase tracking-wider whitespace-nowrap ${
-                   step.status === 'Approved' ? 'text-green-700' : 
-                   step.status === 'Rejected' ? 'text-red-600' : 'text-gray-400'
+                   step.status === 'Approved' ? 'text-primary' : 
+                   step.status === 'Rejected' ? 'text-error' : 'text-on-surface-variant'
                  }`}>{step.name}</span>
               </div>
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-8 pb-8 border-b border-gray-100">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 mb-10 pb-10 border-b border-surface-container">
             <div className="flex gap-4 items-start">
-              <div className="p-2.5 bg-blue-50 text-blue-600 rounded-lg">
+              <div className="p-3 bg-surface-container-low text-primary rounded-md">
                 <CalendarDays className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Applied For</p>
-                <p className="font-semibold text-gray-900">Academic Year {app.academic_year}</p>
-                <p className="text-xs text-gray-400 mt-1">{new Date(app.application_date).toLocaleDateString()}</p>
+                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Applied For</p>
+                <p className="font-semibold text-primary text-lg">Academic Year {app.academic_year}</p>
+                <p className="text-xs text-on-surface-variant mt-1.5">{new Date(app.application_date).toLocaleDateString()}</p>
               </div>
             </div>
 
             <div className="flex gap-4 items-start">
-              <div className="p-2.5 bg-green-50 text-green-600 rounded-lg">
+              <div className="p-3 bg-surface-container-low text-primary rounded-md">
                 <IndianRupee className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Declared Income</p>
-                <p className="font-semibold text-gray-900">₹{app.family_annual_income?.toLocaleString('en-IN')}</p>
+                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Declared Income</p>
+                <p className="font-semibold text-primary text-lg">₹{app.family_annual_income?.toLocaleString('en-IN')}</p>
               </div>
             </div>
 
             <div className="flex gap-4 items-start">
-              <div className="p-2.5 bg-orange-50 text-orange-600 rounded-lg">
+              <div className="p-3 bg-surface-container-low text-primary rounded-md">
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-gray-500 font-medium mb-1">Distance (km)</p>
-                <p className="font-semibold text-gray-900">{app.distance_from_college} km</p>
+                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Distance Profile</p>
+                <p className="font-semibold text-primary text-lg">{app.distance_from_college} km</p>
               </div>
             </div>
 
             {app.merit_score && (
-              <div className="col-span-1 sm:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                <p className="text-xs text-gray-500 font-medium mb-3 uppercase tracking-wider">Calculated Merit Score</p>
+              <div className="col-span-1 sm:col-span-2 bg-surface-container-low p-6 rounded-md border border-surface-container">
+                <p className="text-xs text-primary font-semibold tracking-wider mb-4 uppercase">Institutional Merit Index</p>
                 <MeritScoreBar score={app.merit_score} />
               </div>
             )}
@@ -122,16 +122,20 @@ export default function ApplicationStatus() {
 
           {/* Remarks/Errors block */}
           {app.remarks && (
-            <div className={`rounded-xl p-5 mb-6 ${app.status === 'Rejected' ? 'bg-red-50 border border-red-100' : 'bg-orange-50 border border-orange-100'}`}>
-              <div className="flex gap-3">
-                <div className={`mt-0.5 ${app.status === 'Rejected' ? 'text-red-500' : 'text-orange-500'}`}>
-                   {app.status === 'Rejected' ? <XCircle className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+            <div className={`rounded-md p-6 mb-8 border ${
+              app.status === 'Rejected' 
+                ? 'bg-error-container text-on-error-container border-error/20' 
+                : 'bg-secondary-container text-on-secondary-container border-secondary/20'
+            }`}>
+              <div className="flex gap-4">
+                <div className="mt-0.5 shrink-0">
+                   {app.status === 'Rejected' ? <XCircle className="h-6 w-6" /> : <ChevronRight className="h-6 w-6" />}
                 </div>
                 <div>
-                  <p className={`text-sm font-bold mb-1 ${app.status === 'Rejected' ? 'text-red-800' : 'text-orange-800'}`}>
-                    Advisor Remarks ({app.status})
+                  <p className="text-sm font-bold uppercase tracking-wider mb-2">
+                    Official Remarks ({app.status})
                   </p>
-                  <p className={`text-sm leading-relaxed ${app.status === 'Rejected' ? 'text-red-700' : 'text-orange-700'}`}>
+                  <p className="text-sm leading-relaxed">
                     {app.remarks}
                   </p>
                 </div>
@@ -141,28 +145,28 @@ export default function ApplicationStatus() {
 
           {/* Allocation result if allotted */}
           {app.allocation && app.allocation.status === 'Active' && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 relative overflow-hidden">
-              <div className="absolute right-0 top-0 w-32 h-32 bg-green-500 opacity-5 rounded-bl-full"></div>
-              <h3 className="text-green-800 font-bold text-lg mb-4 flex items-center gap-2">
-                <CheckCircle2 className="h-6 w-6 text-green-600" />
-                🎉 Hostel Allotted!
+            <div className="bg-primary text-white border border-primary-container rounded-md p-8 relative overflow-hidden shadow-ambient">
+              <div className="absolute right-0 top-0 w-48 h-48 bg-white opacity-5 rounded-bl-full pointer-events-none"></div>
+              <h3 className="text-secondary-container font-serif text-2xl mb-6 flex items-center gap-3 relative z-10">
+                <CheckCircle2 className="h-7 w-7 text-secondary" />
+                Allotment Confirmed
               </h3>
-              <div className="grid grid-cols-2 gap-4 text-sm relative z-10">
-                <div className="bg-white/60 p-3 rounded-lg border border-green-100">
-                  <span className="text-green-700/70 block text-xs font-semibold mb-1 uppercase">Hostel Name</span>
-                  <span className="font-bold text-green-900 text-base">{app.allocation.hostel.hostel_name}</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
+                <div className="bg-white/10 backdrop-blur-sm p-5 rounded-sm border border-white/10">
+                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Hostel Designation</span>
+                  <span className="font-serif text-white text-xl">{app.allocation.hostel.hostel_name}</span>
                 </div>
-                <div className="bg-white/60 p-3 rounded-lg border border-green-100">
-                  <span className="text-green-700/70 block text-xs font-semibold mb-1 uppercase">Category</span>
-                  <span className="font-bold text-green-900 text-base">{app.allocation.category?.replace('_', ' ')}</span>
+                <div className="bg-white/10 backdrop-blur-sm p-5 rounded-sm border border-white/10">
+                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Quota Category</span>
+                  <span className="font-sans font-medium text-white text-lg">{app.allocation.category?.replace('_', ' ')}</span>
                 </div>
               </div>
             </div>
           )}
 
           {app.status === 'Returned' && (
-            <div className="mt-8">
-              <Link to="/student/apply" className="block text-center w-full bg-orange-500 hover:bg-orange-600 text-white py-3.5 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg shadow-orange-200">
+            <div className="mt-10">
+              <Link to="/student/apply" className="block text-center w-full bg-secondary hover:bg-secondary-container text-on-secondary py-4 rounded-md text-sm font-bold uppercase tracking-wider transition-colors border border-secondary">
                 Update & Re-submit Application
               </Link>
             </div>

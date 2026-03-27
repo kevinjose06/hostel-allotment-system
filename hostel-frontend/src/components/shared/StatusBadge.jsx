@@ -1,18 +1,18 @@
 const STATUS_COLORS = {
-  Pending:      'bg-yellow-100 text-yellow-800',
-  Under_Review: 'bg-blue-100 text-blue-800',
-  Approved:     'bg-green-100 text-green-800',
-  Rejected:     'bg-red-100 text-red-800',
-  Returned:     'bg-orange-100 text-orange-800',
-  Waitlisted:   'bg-purple-100 text-purple-800',
-  Active:       'bg-green-100 text-green-800',
-  Cancelled:    'bg-gray-100 text-gray-600',
+  Pending:      'bg-secondary/10 text-secondary border-secondary/20',
+  Under_Review: 'bg-primary/10 text-primary border-primary/20',
+  Approved:     'bg-green-600/10 text-green-700 border-green-600/20',
+  Rejected:     'bg-error/10 text-error border-error/20',
+  Returned:     'bg-secondary/10 text-secondary border-secondary/20',
+  Waitlisted:   'bg-surface-container-high text-on-surface-variant border-outline-variant/30',
+  Active:       'bg-green-600/10 text-green-700 border-green-600/20',
+  Cancelled:    'bg-surface-container-highest text-on-surface-variant border-outline-variant/30',
 };
 
 export default function StatusBadge({ status }) {
   if (!status) return null;
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide ${STATUS_COLORS[status] || 'bg-gray-100'}`}>
+    <span className={`px-2.5 py-1 rounded-sm text-[10px] font-bold tracking-widest uppercase border ${STATUS_COLORS[status] || 'bg-surface-container border-outline-variant/30 text-on-surface'}`}>
       {status.replace('_', ' ')}
     </span>
   );

@@ -18,50 +18,54 @@ export default function StudentProfile() {
   const s = app?.student || { first_name: 'John', last_name: 'Doe', college_id: 'KTE24CS079', email: user?.email };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Profile</h1>
-        <p className="text-gray-500 mt-2">Manage your student metadata and contact info.</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="mb-8">
+        <h1 className="font-serif text-4xl text-primary tracking-tight">Institutional Profile</h1>
+        <p className="font-sans text-on-surface-variant mt-2 text-base">Manage your student metadata and contact information.</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 px-8 py-10 text-white flex items-center gap-6">
-          <div className="h-24 w-24 bg-white/20 rounded-full flex items-center justify-center font-bold text-4xl border-2 border-white/40 shadow-inner">
+      <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
+        {/* Profile Header */}
+        <div className="bg-surface-container-low px-8 md:px-12 py-10 flex flex-col md:flex-row items-center md:items-start gap-8 border-b border-surface-container">
+          <div className="h-24 w-24 bg-primary text-white rounded-md flex items-center justify-center font-serif text-4xl shadow-sm">
             {s.first_name?.[0]}{s.last_name?.[0]}
           </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-1">{s.first_name} {s.last_name}</h2>
-            <div className="flex items-center gap-3 text-blue-100 text-sm font-medium">
-              <span className="font-mono">{s.college_id}</span>
-              <span>•</span>
+          <div className="text-center md:text-left">
+            <h2 className="font-serif text-3xl text-primary mb-2">{s.first_name} {s.last_name}</h2>
+            <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-on-surface-variant text-sm font-medium">
+              <span className="font-mono tracking-wider">{s.college_id}</span>
+              <span className="hidden md:inline">•</span>
               <span>{s.email}</span>
             </div>
           </div>
         </div>
         
-        <div className="p-8">
-          <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4 mb-6">Personal details</h3>
+        {/* Profile Details */}
+        <div className="p-8 md:p-12">
+          <h3 className="font-sans font-semibold text-primary uppercase tracking-[0.1em] text-xs border-b border-surface-container pb-4 mb-8">
+            Personal Details
+          </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-y-10 gap-x-12">
             <div>
-              <p className="text-sm font-semibold text-gray-500 mb-1">College ID</p>
-              <p className="font-mono text-gray-900">{s.college_id || 'N/A'}</p>
+              <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">College ID</p>
+              <p className="font-mono text-on-surface text-base">{s.college_id || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-500 mb-1">Email Address</p>
-              <p className="text-gray-900">{s.email || 'N/A'}</p>
+              <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Email Address</p>
+              <p className="text-on-surface text-base">{s.email || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-500 mb-1">Gender</p>
-              <p className="text-gray-900">{s.gender || 'N/A'}</p>
+              <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Gender</p>
+              <p className="text-on-surface text-base">{s.gender || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-sm font-semibold text-gray-500 mb-1">Contact Number</p>
-              <p className="text-gray-900">{s.contact_number || 'N/A'}</p>
+              <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Contact Number</p>
+              <p className="text-on-surface text-base">{s.contact_number || 'N/A'}</p>
             </div>
             <div className="md:col-span-2">
-              <p className="text-sm font-semibold text-gray-500 mb-1">Department & Class</p>
-              <p className="text-gray-900">{s.class?.department || 'N/A'}</p>
+              <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Department & Class</p>
+              <p className="text-on-surface text-base">{s.class?.department || 'N/A'}</p>
             </div>
           </div>
         </div>

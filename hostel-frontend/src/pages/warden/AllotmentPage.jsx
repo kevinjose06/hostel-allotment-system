@@ -32,22 +32,22 @@ export default function AllotmentPage() {
   if (isLoading) return <LoadingSpinner />;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Run Hostel Allotment</h1>
-        <p className="text-gray-500 mt-2 leading-relaxed">
-          Select an institution and an academic year to trigger the backend allotment strategy. 
-          Reserved seats are processed sequentially (PWD → BPL → SC/ST) before assessing general merit ranking.
+        <h1 className="font-serif text-4xl text-primary tracking-tight">System Allotment Engine</h1>
+        <p className="font-sans text-on-surface-variant mt-2 leading-relaxed">
+          Select structural infrastructure and cohort temporal period to execute the institutional algorithm. 
+          Categorized logic runs linearly (PWD → BPL → SC/ST) prior to assessing general merit vectors.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-8 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
+        <div className="p-8 md:p-12 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
-              <label className="form-label font-bold text-gray-800">Target Institution *</label>
-              <select value={selectedHostel} onChange={e => setSelectedHostel(e.target.value)} className="input py-3">
-                <option value="">Select a monitored hostel...</option>
+              <label className="block text-xs font-bold uppercase tracking-widest text-primary mb-3">Target Infrastructure Structure <span className="text-error">*</span></label>
+              <select value={selectedHostel} onChange={e => setSelectedHostel(e.target.value)} className="input py-4 text-base">
+                <option value="">Select monitored infrastructure...</option>
                 {hostels.map(h => (
                   <option key={h.hostel_id} value={h.hostel_id}>
                     {h.hostel_name} ({h.hostel_type}) — {h.available_seats} vac.
@@ -57,25 +57,25 @@ export default function AllotmentPage() {
             </div>
 
             <div>
-              <label className="form-label font-bold text-gray-800">Target Academic Year *</label>
+              <label className="block text-xs font-bold uppercase tracking-widest text-primary mb-3">Target Academic Session <span className="text-error">*</span></label>
               <input
                 type="number"
                 value={academicYear}
                 onChange={e => setAcademicYear(e.target.value)}
-                className="input py-3"
+                className="input py-4 text-base"
               />
             </div>
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex gap-4 mt-8">
-             <div className="mt-0.5 text-amber-500">
-               <Trophy className="w-5 h-5" />
+          <div className="bg-secondary/10 border border-secondary/20 rounded-md p-6 flex gap-5 mt-10">
+             <div className="mt-0.5 text-secondary shrink-0">
+               <Trophy className="w-6 h-6" />
              </div>
              <div>
-               <h4 className="font-bold text-amber-900 text-sm mb-1">Critical Action Warning</h4>
-               <p className="text-sm text-amber-800 leading-relaxed">
-                 Triggering the algorithm will irrevocably map applications to available beds. 
-                 Ensure all target applications have concluded the advisor review process before proceeding.
+               <h4 className="font-sans font-bold text-secondary uppercase tracking-widest text-[11px] mb-2">Critical Action Warning</h4>
+               <p className="text-sm text-secondary-container-dark leading-relaxed font-medium">
+                 Triggering the algorithmic engine will irrevocably map active applications to available institutional beds. 
+                 Ensure all target applicants have concluded the stringent advisor review protocol before officially proceeding.
                </p>
              </div>
           </div>
@@ -83,9 +83,9 @@ export default function AllotmentPage() {
           <button
             onClick={() => allotmentMutation.mutate()}
             disabled={!selectedHostel || allotmentMutation.isPending}
-            className="w-full py-4 bg-gray-900 hover:bg-black text-white font-bold rounded-xl shadow-lg shadow-gray-300 transition-all disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
+            className="w-full py-5 bg-primary hover:bg-primary-fixed text-white font-bold uppercase tracking-widest text-sm rounded-md shadow-ambient transition-all disabled:opacity-50 disabled:bg-surface-container disabled:text-on-surface-variant flex items-center justify-center gap-3"
           >
-            {allotmentMutation.isPending ? 'Running Engine Parameters...' : <><Sparkles className="w-5 h-5" /> Execute Rank Algorithm</>}
+            {allotmentMutation.isPending ? 'Executing Matrix Vectors...' : <><Sparkles className="w-5 h-5" /> Execute Rank Algorithm</>}
           </button>
         </div>
       </div>
@@ -93,42 +93,42 @@ export default function AllotmentPage() {
       {/* Result Card */}
       {result && (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 relative overflow-hidden shadow-sm">
-             <div className="absolute -right-10 -top-10 w-40 h-40 bg-green-500 opacity-5 rounded-full blur-2xl"></div>
+           <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-md p-10 relative overflow-hidden shadow-ambient">
+             <div className="absolute -right-10 -top-10 w-48 h-48 bg-primary/5 rounded-full blur-2xl pointer-events-none"></div>
              
-             <h2 className="font-bold text-green-900 text-2xl mb-6 flex items-center gap-3 tracking-tight">
-                <Users className="w-7 h-7 text-green-600" />
-                Allotment Successfully Concluded
+             <h2 className="font-serif font-bold text-primary text-3xl mb-8 flex items-center gap-4 tracking-tight relative z-10">
+                <Users className="w-8 h-8 text-secondary" />
+                Institutional Allotment Concluded
              </h2>
              
              <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 text-sm relative z-10">
-               <div className="bg-white/60 p-4 rounded-xl border border-green-100 shadow-sm">
-                 <span className="text-green-700 font-semibold block uppercase tracking-wider text-[10px] mb-1">Target</span>
-                 <strong className="text-gray-900 text-base">{result.hostel_name}</strong>
+               <div className="bg-surface-container-low p-5 rounded-sm border border-surface-container">
+                 <span className="text-on-surface-variant font-bold block uppercase tracking-widest text-[10px] mb-2">Designation</span>
+                 <strong className="text-primary font-serif text-xl">{result.hostel_name}</strong>
                </div>
-               <div className="bg-white/60 p-4 rounded-xl border border-green-100 shadow-sm">
-                 <span className="text-green-700 font-semibold block uppercase tracking-wider text-[10px] mb-1">Year</span>
-                 <strong className="text-gray-900 text-base">{result.academic_year}</strong>
+               <div className="bg-surface-container-low p-5 rounded-sm border border-surface-container">
+                 <span className="text-on-surface-variant font-bold block uppercase tracking-widest text-[10px] mb-2">Session Year</span>
+                 <strong className="text-primary font-serif text-xl">{result.academic_year}</strong>
                </div>
-               <div className="bg-white/60 p-4 rounded-xl border border-green-100 shadow-sm sm:col-span-2">
-                 <span className="text-green-700 font-semibold block uppercase tracking-wider text-[10px] mb-1">Allocation Map Breakdown</span>
-                 <div className="flex gap-4 items-end mt-1">
+               <div className="bg-surface-container-low p-5 rounded-sm border border-surface-container sm:col-span-2">
+                 <span className="text-on-surface-variant font-bold block uppercase tracking-widest text-[10px] mb-2">Allocation Matrix Breakdown</span>
+                 <div className="flex gap-5 items-end mt-1">
                    <div>
-                     <span className="text-2xl font-bold text-emerald-600 leading-none">{result.total_allocated}</span>
-                     <span className="text-xs text-gray-500 ml-1 font-medium">Beds Filled</span>
+                     <span className="text-3xl font-serif font-bold text-secondary leading-none">{result.total_allocated}</span>
+                     <span className="text-xs text-on-surface-variant ml-2 font-bold uppercase tracking-wider">Beds Filled</span>
                    </div>
-                   <div className="h-6 border-l border-green-200"></div>
-                   <div className="text-xs text-gray-500 font-medium">
-                     <p><strong className="text-gray-800">{result.reserved_allocated}</strong> Reserved</p>
-                     <p><strong className="text-gray-800">{result.general_allocated}</strong> Gen. Merit</p>
+                   <div className="h-8 border-l border-surface-container-highest"></div>
+                   <div className="text-[11px] text-on-surface font-semibold uppercase tracking-wider space-y-1">
+                     <p><strong className="text-primary text-sm mr-1">{result.reserved_allocated}</strong> Reserved Quota</p>
+                     <p><strong className="text-primary text-sm mr-1">{result.general_allocated}</strong> General Merit</p>
                    </div>
                  </div>
                </div>
              </div>
              
-             <div className="mt-8 pt-6 border-t border-green-200/50">
-               <a href="/warden/results" className="inline-flex items-center gap-2 text-green-700 font-bold hover:text-green-800 hover:underline">
-                 Review Manifest Document →
+             <div className="mt-10 pt-8 border-t border-surface-container relative z-10">
+               <a href="/warden/results" className="inline-flex items-center gap-2 text-primary font-bold uppercase tracking-widest text-xs hover:text-secondary group transition-colors">
+                 Review Manifest Document <span className="group-hover:translate-x-1 transition-transform">→</span>
                </a>
              </div>
            </div>

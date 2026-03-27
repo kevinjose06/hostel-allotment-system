@@ -4,13 +4,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#1d4ed8', light: '#3b82f6', dark: '#1e3a8a' },
-        success: { DEFAULT: '#10b981', light: '#34d399', dark: '#047857' },
-        warning: { DEFAULT: '#f59e0b', light: '#fbbf24', dark: '#b45309' },
-        danger: { DEFAULT: '#ef4444', light: '#f87171', dark: '#b91c1c' },
+        primary: {
+          DEFAULT: '#001748',
+          container: '#0D2B6B',
+          fixed: '#dbe1ff',
+          'fixed-dim': '#b3c5ff',
+        },
+        secondary: {
+          DEFAULT: '#855300',
+          container: '#FEA619',
+        },
+        surface: {
+          DEFAULT: '#F8F9FB',
+          'container-lowest': '#FFFFFF',
+          'container-low': '#F2F4F6',
+          container: '#edeef0',
+          'container-highest': '#E1E2E4',
+        },
+        outline: {
+          variant: '#C5C6D2',
+        },
+        error: {
+          DEFAULT: '#ba1a1a',
+        },
+        on: {
+          primary: '#ffffff',
+          surface: '#191C1E',
+          'surface-variant': '#444650',
+        }
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif']
+        sans: ['"Public Sans"', 'sans-serif'],
+        serif: ['Newsreader', 'serif'],
+      },
+      boxShadow: {
+        ambient: '0 4px 20px rgba(0, 23, 72, 0.04)',
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-out',

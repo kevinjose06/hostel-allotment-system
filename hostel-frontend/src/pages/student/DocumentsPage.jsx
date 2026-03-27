@@ -7,42 +7,44 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Documents</h1>
-        <p className="text-gray-500 mt-2">Upload the scanned copies of your certificates for verification.</p>
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="mb-8">
+        <h1 className="font-serif text-4xl text-primary tracking-tight">Document Repository</h1>
+        <p className="font-sans text-on-surface-variant mt-2 text-base">Upload the scanned copies of your official certificates for verification.</p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <h2 className="text-lg font-bold text-gray-900 mb-6">Required Documents</h2>
+      <div className="card">
+        <h2 className="font-sans font-semibold text-primary uppercase tracking-[0.1em] text-xs border-b border-surface-container pb-4 mb-8">
+          Required Documents
+        </h2>
         
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Document Item */}
-          <div className="border border-gray-100 rounded-xl p-5 flex items-center justify-between group hover:border-blue-200 transition-colors bg-gray-50/50">
+          <div className="border border-surface-container rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group hover:border-outline-variant/50 transition-colors bg-surface-container-lowest">
             <div>
-              <p className="font-semibold text-gray-900">Income Certificate</p>
-              <p className="text-xs text-gray-500 mt-1">Required for accurate merit assessment. (PDF or JPG, max 5MB)</p>
+              <p className="font-serif text-xl text-primary">Income Certificate</p>
+              <p className="text-sm text-on-surface-variant mt-1.5">Required for accurate merit assessment. (PDF or JPG, max 5MB)</p>
             </div>
-            <button onClick={mockUpload} className="px-4 py-2 border border-gray-200 bg-white text-gray-700 font-medium rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 hover:border-blue-300 transition-colors">
-              <UploadCloud className="w-4 h-4 text-gray-400" />
-              Upload
+            <button onClick={mockUpload} className="px-6 py-2.5 bg-surface-container-low text-primary font-medium rounded-md text-sm flex items-center justify-center gap-2 hover:bg-surface-container transition-colors shrink-0">
+              <UploadCloud className="w-4 h-4" />
+              Upload File
             </button>
           </div>
 
-          <div className="border border-gray-100 rounded-xl p-5 flex items-center justify-between group hover:border-blue-200 transition-colors bg-gray-50/50">
+          <div className="border border-surface-container rounded-md p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group hover:border-outline-variant/50 transition-colors bg-surface-container-lowest">
             <div>
-              <p className="font-semibold text-gray-900">Residential Certificate</p>
-              <p className="text-xs text-gray-500 mt-1">Proof of distance from college. (PDF or JPG, max 5MB)</p>
+              <p className="font-serif text-xl text-primary">Residential Certificate</p>
+              <p className="text-sm text-on-surface-variant mt-1.5">Official proof of distance from college. (PDF or JPG, max 5MB)</p>
             </div>
-            <button onClick={mockUpload} className="px-4 py-2 border border-gray-200 bg-white text-gray-700 font-medium rounded-lg text-sm flex items-center gap-2 hover:bg-gray-50 hover:border-blue-300 transition-colors">
-              <UploadCloud className="w-4 h-4 text-gray-400" />
-              Upload
+            <button onClick={mockUpload} className="px-6 py-2.5 bg-surface-container-low text-primary font-medium rounded-md text-sm flex items-center justify-center gap-2 hover:bg-surface-container transition-colors shrink-0">
+              <UploadCloud className="w-4 h-4" />
+              Upload File
             </button>
           </div>
         </div>
 
-        <div className="mt-8 bg-amber-50 rounded-xl p-5 border border-amber-100">
-          <p className="text-sm text-amber-800 font-medium">Demo Note: File uploading is simulated. Clicking "Upload" will trigger a mock success action in this current environment.</p>
+        <div className="mt-8 bg-surface-container-low rounded-md p-5 border-l-4 border-secondary">
+          <p className="text-sm text-on-surface-variant font-medium">Demo Note: File uploading is simulated. Clicking "Upload File" will trigger a mock success action in this current environment.</p>
         </div>
       </div>
     </div>

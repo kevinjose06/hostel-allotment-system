@@ -4,32 +4,32 @@ export default function HostelOccupancyCard({ hostel }) {
   const pct = Math.round((hostel.current_occupancy / hostel.total_capacity) * 100);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-      <div className="flex gap-4">
-        <div className="h-12 w-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
-          <Building2 className="h-6 w-6" />
+    <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-6 hover:shadow-md transition-shadow">
+      <div className="flex gap-5">
+        <div className="h-14 w-14 bg-primary/10 text-primary border border-primary/20 rounded-sm flex items-center justify-center shrink-0">
+          <Building2 className="h-7 w-7" />
         </div>
         <div className="flex-1">
-          <div className="flex justify-between items-start mb-1">
-            <h3 className="font-semibold text-gray-800 text-lg leading-tight">{hostel.hostel_name}</h3>
-            <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full tracking-wider ${
-              hostel.hostel_type === 'LH' ? 'bg-pink-50 text-pink-700 border border-pink-100' : 'bg-blue-50 text-blue-700 border border-blue-100'
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-serif font-bold text-primary text-2xl leading-tight">{hostel.hostel_name}</h3>
+            <span className={`text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 rounded-sm border ${
+              hostel.hostel_type === 'LH' ? 'bg-secondary/10 text-secondary border-secondary/20' : 'bg-primary/10 text-primary border-primary/20'
             }`}>
               {hostel.hostel_type === 'LH' ? "Ladies" : "Mens"}
             </span>
           </div>
-          <p className="text-xs text-gray-500 mb-3 font-medium">Warden: {hostel.warden_name}</p>
+          <p className="text-[11px] text-on-surface-variant font-bold uppercase tracking-wider mb-5">Warden: {hostel.warden_name}</p>
           
-          <div className="w-full bg-gray-100 rounded-full h-2.5 mb-2 overflow-hidden">
+          <div className="w-full bg-surface-container border border-outline-variant/10 shadow-inner rounded-sm h-3 mb-3 overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all duration-1000 ${pct > 90 ? 'bg-red-500' : pct > 70 ? 'bg-yellow-400' : 'bg-green-500'}`}
+              className={`h-full rounded-sm transition-all duration-1000 ${pct > 90 ? 'bg-error' : pct > 70 ? 'bg-secondary' : 'bg-primary'}`}
               style={{ width: `${pct}%` }}
             />
           </div>
           
-          <div className="flex justify-between text-xs font-medium text-gray-600">
-            <span>{hostel.current_occupancy} / {hostel.total_capacity} full</span>
-            <span className={pct > 90 ? 'text-red-600' : 'text-green-600'}>{hostel.available_seats} left</span>
+          <div className="flex justify-between text-[11px] font-bold uppercase tracking-widest text-on-surface-variant">
+            <span>{hostel.current_occupancy} / {hostel.total_capacity} Full</span>
+            <span className={pct > 90 ? 'text-error' : pct > 70 ? 'text-secondary' : 'text-primary'}>{hostel.available_seats} Left</span>
           </div>
         </div>
       </div>

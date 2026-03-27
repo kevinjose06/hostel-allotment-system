@@ -58,47 +58,47 @@ export default function ApplicationPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-3xl mx-auto space-y-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Apply for Hostel</h1>
-        <p className="text-gray-500 mt-2 text-sm leading-relaxed">
-          Submit your hostel application for Academic Year {currentYear}–{currentYear + 1}.
-          Please ensure all your provided documents and profile details are accurate before proceeding, as your class advisor will review and verify them.
+        <h1 className="font-serif text-4xl text-primary tracking-tight">Hostel Registration</h1>
+        <p className="font-sans text-on-surface-variant mt-3 text-base leading-relaxed">
+          Submit your official hostel application for Academic Year {currentYear}–{currentYear + 1}.
+          Please ensure all your provided documents and profile details are accurate before proceeding, as your Class Advisor will review and verify them.
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      <div className="card">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
           <div>
-            <label className="form-label font-semibold text-gray-800">Academic Year *</label>
-            <input {...register('academic_year')} type="number" className="input bg-gray-50 text-gray-500 pointer-events-none" readOnly />
+            <label className="form-label">Academic Year <span className="text-error">*</span></label>
+            <input {...register('academic_year')} type="number" className="input bg-surface-container text-on-surface-variant pointer-events-none" readOnly />
           </div>
           
-          <div className="pt-4 border-t border-gray-100">
-            <label className="form-label font-semibold text-gray-800">Family Annual Income (₹) *</label>
+          <div className="pt-6 border-t border-surface-container">
+            <label className="form-label">Family Annual Income (₹) <span className="text-error">*</span></label>
             <input {...register('family_annual_income')} type="number" className="input text-lg py-3" placeholder="Enter total family income" />
             {errors.family_annual_income && <p className="form-error">{errors.family_annual_income.message}</p>}
-            <p className="text-xs text-gray-400 mt-1.5 font-medium">
+            <p className="text-xs text-on-surface-variant mt-2 font-medium tracking-wide">
               This value will be used for merit score calculation. Upload income certificate under 'My Documents'.
             </p>
           </div>
           
-          <div className="pt-4 border-t border-gray-100">
-            <label className="form-label font-semibold text-gray-800">Distance from Home to College (km) *</label>
+          <div className="pt-6 border-t border-surface-container">
+            <label className="form-label">Distance from Home to College (km) <span className="text-error">*</span></label>
             <input {...register('distance_from_college')} type="number" step="0.1" className="input text-lg py-3" placeholder="e.g. 85.5" />
             {errors.distance_from_college && <p className="form-error">{errors.distance_from_college.message}</p>}
           </div>
 
-          <div className="bg-blue-50/80 border border-blue-100 rounded-xl p-5 mt-6">
-            <h4 className="font-semibold text-blue-900 mb-2 text-sm">Merit Score Calculation Guide</h4>
-            <p className="text-sm text-blue-800 leading-relaxed">
+          <div className="bg-surface-container-low border border-surface-container rounded-md p-6 mt-8">
+            <h4 className="font-sans font-semibold text-primary mb-2 text-sm uppercase tracking-wider">Merit Score Calculation Guide</h4>
+            <p className="text-sm text-on-surface-variant leading-relaxed">
               Your merit score is calculated dynamically based on your family annual income and distance from the college. 
-              Lower income and higher distances result in a proportionally higher score. Providing false data will result in immediate rejection.
+              Lower income and higher distances result in a proportionally higher score. Providing false data will result in immediate institutional rejection.
             </p>
           </div>
 
-          <button type="submit" disabled={isSubmitting} className="w-full btn-primary py-3.5 text-base shadow-md mt-4">
-            {isSubmitting ? 'Submitting Application...' : 'Submit Application Form'}
+          <button type="submit" disabled={isSubmitting} className="btn-primary w-full py-4 text-base mt-4">
+            {isSubmitting ? 'Submitting Application...' : 'Submit Official Form'}
           </button>
         </form>
       </div>
