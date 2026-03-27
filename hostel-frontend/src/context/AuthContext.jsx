@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 const AuthContext = createContext(null);
 
@@ -8,32 +9,54 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for mock session on load
-    const storedRole = localStorage.getItem('mockRole');
-    if (storedRole) {
-      setUser({ email: `${storedRole}@rgit.ac.in`, role: storedRole });
-      setUserRole(storedRole);
-    }
-    setLoading(false);
+    // 1. Check for current session on load
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        setUserRole(session.user.user_metadata?.role || 'student');
+      }
+      setLoading(false);
+    };
+
+    getInitialSession();
+
+    // 2. Listen for auth state changes (login, logout, etc.)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        setUser(session.user);
+        setUserRole(session.user.user_metadata?.role || 'student');
+      } else {
+        setUser(null);
+        setUserRole(null);
+      }
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const signInAs = async (role) => {
+  const signInAs = async (email, password) => {
     setLoading(true);
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     
-    setUser({ email: `${role}@rgit.ac.in`, role });
-    setUserRole(role);
-    localStorage.setItem('mockRole', role);
-    setLoading(false);
+    if (error) {
+      setLoading(false);
+      throw error;
+    }
+    
+    // Auth state listener handles setting user/role
+    return data;
   };
 
   const signOut = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await supabase.auth.signOut();
     setUser(null);
     setUserRole(null);
-    localStorage.removeItem('mockRole');
     setLoading(false);
   };
 

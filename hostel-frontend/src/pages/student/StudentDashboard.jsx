@@ -1,17 +1,30 @@
 import { useAuth } from '../../context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import api from '../../services/api';
+import { applicationService } from '../../services/applicationService';
 import { FileText, Clock, User, CheckCircle2 } from 'lucide-react';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import { Link } from 'react-router-dom';
 import StatusBadge from '../../components/shared/StatusBadge';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
   
-  const { data: app } = useQuery({
+  const { data: app, isLoading, isError } = useQuery({
     queryKey: ['my-application'],
-    queryFn: () => api.get('/application/my').then(r => r.data.data)
+    queryFn: () => applicationService.getMyApplication()
   });
+
+  if (isLoading) return <LoadingSpinner />;
+  
+  if (isError) {
+    return (
+      <div className="p-12 text-center card">
+        <h2 className="text-xl font-serif text-error mb-4">Dashboard Error</h2>
+        <p className="text-on-surface-variant mb-6">We encountered an issue while loading your application status.</p>
+        <button onClick={() => window.location.reload()} className="btn-secondary">Retry</button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

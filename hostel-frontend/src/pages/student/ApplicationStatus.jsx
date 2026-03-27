@@ -1,15 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
-import api from '../../services/api';
+import { applicationService } from '../../services/applicationService';
 import StatusBadge from '../../components/shared/StatusBadge';
 import MeritScoreBar from '../../components/shared/MeritScoreBar';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import { MapPin, IndianRupee, CalendarDays, CheckCircle2, ChevronRight, XCircle } from 'lucide-react';
+import { MapPin, IndianRupee, CalendarDays, CheckCircle2, ChevronRight, XCircle, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function ApplicationStatus() {
   const { data: app, isLoading } = useQuery({
     queryKey: ['my-application'],
-    queryFn: () => api.get('/application/my').then(r => r.data.data)
+    queryFn: () => applicationService.getMyApplication()
   });
 
   if (isLoading) return <LoadingSpinner />;

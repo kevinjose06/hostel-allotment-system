@@ -1,43 +1,69 @@
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import api from '../../services/api';
+import { authService } from '../../services/authService';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabaseClient';
 import toast from 'react-hot-toast';
+import { getFriendlyErrorMessage } from '../../utils/errorHelpers';
 
 const schema = z.object({
   college_id:            z.string().min(5, 'Enter a valid college ID'),
   first_name:            z.string().min(1, 'Required'),
+  middle_name:           z.string().optional(),
   last_name:             z.string().min(1, 'Required'),
   email:                 z.string().email('Invalid email'),
   password:              z.string().min(8, 'Password > 8 chars'),
   gender:                z.enum(['Male', 'Female', 'Other']),
   date_of_birth:         z.string(),
-  contact_number:        z.string().min(10).max(15),
-  class_id:              z.coerce.number().int().positive(),
+  contact_number:        z.string().length(10, 'Contact number must be exactly 10 digits'),
+  class_id:              z.coerce.number().min(1, 'Please select your class'),
 });
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [classes, setClasses] = useState([]);
+  const [fetchingClasses, setFetchingClasses] = useState(true);
+
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema)
   });
 
+  useEffect(() => {
+    async function fetchClasses() {
+      try {
+        const { data, error } = await supabase
+          .from('class')
+          .select('class_id, degree_program, department, year, division')
+          .order('degree_program')
+          .order('year');
+        
+        if (error) throw error;
+        setClasses(data || []);
+      } catch (err) {
+        toast.error('Failed to load official classes');
+      } finally {
+        setFetchingClasses(false);
+      }
+    }
+    fetchClasses();
+  }, []);
+
   const onSubmit = async (data) => {
     try {
-      await api.post('/auth/register/student', data);
-      toast.success('Registration simulated successfully! You can mock login now.');
+      await authService.registerStudent(data);
+      toast.success('Registration successful! Please login to continue.');
       navigate('/login');
     } catch (err) {
-      toast.error('Registration failed');
+      toast.error(getFriendlyErrorMessage(err));
     }
   };
 
   return (
     <div className="min-h-screen bg-surface flex flex-col md:flex-row">
-      {/* Left Asymmetrical Pane - The "Monolith" */}
+      {/* Left Pane */}
       <div className="hidden md:flex md:w-4/12 bg-primary text-white flex-col justify-between p-12 lg:p-16 relative overflow-hidden">
-        {/* Subtle background texture/gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container opacity-50"></div>
         
         <div className="relative z-10 sticky top-16">
@@ -48,22 +74,18 @@ export default function RegisterPage() {
             Student Registration
           </h1>
           <p className="font-sans text-primary-fixed-dim text-base max-w-sm leading-relaxed">
-            Create an account to access the Centralized Hostel Allotment Portal. All fields are mandatory unless marked optional.
+            Create an account and assign yourself to your official class. Data accuracy is required for hostel eligibility.
           </p>
         </div>
         
-        <div className="relative z-10 mt-auto pt-24">
+        <div className="relative z-10 mt-auto pt-24 text-primary-fixed-dim/60">
           <div className="w-12 h-1 bg-secondary-container mb-6"></div>
-          <p className="font-serif text-sm text-primary-fixed-dim tracking-widest uppercase">
-            The Digital Secretariat
-          </p>
         </div>
       </div>
 
       {/* Right Pane */}
-      <div className="w-full md:w-8/12 p-6 md:p-12 xl:p-20">
+      <div className="w-full md:w-8/12 p-6 md:p-12 xl:p-20 overflow-y-auto max-h-screen">
         <div className="max-w-3xl mx-auto">
-          {/* Mobile Header */}
           <div className="md:hidden mb-8">
             <Link to="/login" className="text-secondary hover:underline text-sm font-medium mb-4 inline-block tracking-widest uppercase">
               ← Back to Login
@@ -76,12 +98,12 @@ export default function RegisterPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                   <label className="form-label">College ID <span className="text-error">*</span></label>
-                  <input {...register('college_id')} className="input" placeholder="e.g. KTE24CS079" />
+                  <input {...register('college_id')} className="input uppercase" placeholder="e.g. 24BR12345" />
                   {errors.college_id && <p className="form-error">{errors.college_id.message}</p>}
                 </div>
                 <div>
                   <label className="form-label">Email Address <span className="text-error">*</span></label>
-                  <input {...register('email')} type="email" className="input" placeholder="student@rgit.ac.in" />
+                  <input {...register('email')} type="email" className="input" placeholder="e.g. 24BR12345@rit.ac.in" />
                   {errors.email && <p className="form-error">{errors.email.message}</p>}
                 </div>
                 
@@ -90,8 +112,25 @@ export default function RegisterPage() {
                   <input {...register('first_name')} className="input" />
                 </div>
                 <div>
+                  <label className="form-label">Middle Name <span className="text-on-surface-variant text-xs">(Optional)</span></label>
+                  <input {...register('middle_name')} className="input" />
+                </div>
+                <div className="md:col-span-1">
                   <label className="form-label">Last Name <span className="text-error">*</span></label>
                   <input {...register('last_name')} className="input" />
+                </div>
+
+                <div>
+                   <label className="form-label">Class <span className="text-error">*</span></label>
+                   <select {...register('class_id')} className="input cursor-pointer" disabled={fetchingClasses}>
+                     <option value="">{fetchingClasses ? 'Loading official data...' : 'Select your class'}</option>
+                     {classes.map(c => (
+                       <option key={c.class_id} value={c.class_id}>
+                         {c.degree_program} - {c.department} (Y{c.year}, {c.division})
+                       </option>
+                     ))}
+                   </select>
+                   {errors.class_id && <p className="form-error">{errors.class_id.message}</p>}
                 </div>
 
                 <div>
@@ -107,17 +146,18 @@ export default function RegisterPage() {
                   <input {...register('date_of_birth')} type="date" className="input" />
                 </div>
 
-                <div>
-                  <label className="form-label">Contact Number <span className="text-error">*</span></label>
-                  <input {...register('contact_number')} className="input" placeholder="10 digit number" />
-                </div>
-                <div>
-                  <label className="form-label">Class / Semester <span className="text-error">*</span></label>
-                  <select {...register('class_id')} className="input cursor-pointer">
-                    <option value="">Select class</option>
-                    <option value="1">S3 Computer Science</option>
-                    <option value="2">S3 Electronics</option>
-                  </select>
+                <div className="md:col-span-2">
+                  <label className="form-label">Contact Number (10 Digits) <span className="text-error">*</span></label>
+                  <input 
+                    {...register('contact_number')} 
+                    className="input" 
+                    placeholder="e.g. 9876543210" 
+                    maxLength={10}
+                    onInput={(e) => {
+                      e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    }}
+                  />
+                  {errors.contact_number && <p className="form-error">{errors.contact_number.message}</p>}
                 </div>
 
                 <div className="md:col-span-2">
@@ -133,7 +173,7 @@ export default function RegisterPage() {
                   disabled={isSubmitting}
                   className="btn-primary w-full py-4 text-base"
                 >
-                  {isSubmitting ? 'Registering...' : 'Create Account'}
+                  {isSubmitting ? 'Registering...' : 'Complete Institutional Enrollment'}
                 </button>
               </div>
             </form>
