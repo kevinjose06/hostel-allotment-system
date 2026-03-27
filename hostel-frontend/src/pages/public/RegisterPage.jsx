@@ -15,8 +15,6 @@ const schema = z.object({
   date_of_birth:         z.string(),
   contact_number:        z.string().min(10).max(15),
   class_id:              z.coerce.number().int().positive(),
-  family_annual_income:  z.coerce.number().min(0),
-  distance_from_college: z.coerce.number().min(0),
 });
 
 export default function RegisterPage() {
@@ -122,15 +120,6 @@ export default function RegisterPage() {
                   </select>
                 </div>
 
-                <div>
-                  <label className="form-label">Family Annual Income (₹) <span className="text-error">*</span></label>
-                  <input {...register('family_annual_income')} type="number" className="input" />
-                </div>
-                <div>
-                  <label className="form-label">Distance from College (km) <span className="text-error">*</span></label>
-                  <input {...register('distance_from_college')} type="number" step="0.1" className="input" />
-                </div>
-
                 <div className="md:col-span-2">
                   <label className="form-label">Password <span className="text-error">*</span></label>
                   <input {...register('password')} type="password" className="input" />
@@ -138,25 +127,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="bg-surface-container-low rounded-md p-6 mt-10">
-                <h3 className="font-serif text-lg text-primary mb-4">Reservation Categories (Optional)</h3>
-                <div className="flex flex-wrap gap-8">
-                  <label className="flex items-center gap-3 text-sm font-medium text-on-surface cursor-pointer group">
-                    <input type="checkbox" className="rounded-sm border-outline-variant text-primary focus:ring-primary-fixed/30 w-5 h-5 transition-colors cursor-pointer" />
-                    BPL (Below Poverty Line)
-                  </label>
-                  <label className="flex items-center gap-3 text-sm font-medium text-on-surface cursor-pointer group">
-                    <input type="checkbox" className="rounded-sm border-outline-variant text-primary focus:ring-primary-fixed/30 w-5 h-5 transition-colors cursor-pointer" />
-                    PWD (Person with Disability)
-                  </label>
-                  <label className="flex items-center gap-3 text-sm font-medium text-on-surface cursor-pointer group">
-                    <input type="checkbox" className="rounded-sm border-outline-variant text-primary focus:ring-primary-fixed/30 w-5 h-5 transition-colors cursor-pointer" />
-                    SC / ST
-                  </label>
-                </div>
-              </div>
-
-              <div className="pt-6 border-t border-surface-container">
+              <div className="pt-6 mt-10 border-t border-surface-container">
                 <button
                   type="submit"
                   disabled={isSubmitting}

@@ -4,6 +4,7 @@ import {
   LayoutDashboard, FileText, User, Building2,
   Users, BookOpen, CheckSquare, LogOut
 } from 'lucide-react';
+import ritLogo from '../../assets/ritlnew.png';
 
 const NAV_CONFIG = {
   student: [
@@ -40,14 +41,8 @@ export default function Sidebar() {
     <aside className="w-64 bg-surface-container-lowest border-r border-outline-variant/20 flex flex-col h-screen shrink-0 relative z-20 shadow-ambient shadow-primary-fixed/5">
       {/* Logo */}
       <div className="p-6 border-b border-surface-container flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 bg-primary rounded-md flex items-center justify-center text-secondary-container font-serif text-2xl font-bold">
-            R
-          </div>
-          <div>
-            <p className="font-serif font-bold text-primary text-base leading-tight">RGIT Kottayam</p>
-            <p className="font-sans text-xs font-medium text-on-surface-variant tracking-wider uppercase">Hostel Portal</p>
-          </div>
+        <div className="flex justify-center bg-primary rounded-md px-4 py-3 shadow-inner">
+          <img src={ritLogo} alt="RIT Kottayam" className="h-[44px] w-auto object-contain" />
         </div>
       </div>
 

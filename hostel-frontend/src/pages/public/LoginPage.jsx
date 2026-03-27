@@ -1,12 +1,26 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Building2, User, Users, Shield, GraduationCap } from 'lucide-react';
+import ritLogo from '../../assets/ritlnew.png';
 
 export default function LoginPage() {
   const { signInAs, getRedirectPath, loading } = useAuth();
   const navigate = useNavigate();
+  
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-  const handleLogin = async (role) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (!username || !password) return;
+
+    // For frontend demo purposes, infer role from username. 
+    // In production, the backend returns the role and token during authentication.
+    let role = 'student';
+    if (username.toLowerCase().includes('admin')) role = 'admin';
+    else if (username.toLowerCase().includes('warden')) role = 'warden';
+    else if (username.toLowerCase().includes('advisor')) role = 'advisor';
+
     await signInAs(role);
     navigate(getRedirectPath(role));
   };
@@ -19,8 +33,8 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container opacity-50"></div>
         
         <div className="relative z-10">
-          <div className="h-16 w-16 bg-white/10 backdrop-blur-md rounded-md flex items-center justify-center mb-10 border border-white/10">
-            <Building2 className="h-8 w-8 text-secondary-container" />
+          <div className="bg-white/10 backdrop-blur-md rounded-md flex items-center justify-center mb-8 border border-white/10 p-4 inline-block">
+            <img src={ritLogo} alt="RIT Kottayam" className="h-16 w-auto object-contain" />
           </div>
           <h1 className="font-serif text-5xl lg:text-6xl text-white tracking-tight leading-tight mb-6">
             Rajiv Gandhi Institute of Technology
@@ -44,81 +58,62 @@ export default function LoginPage() {
           
           {/* Mobile Header */}
           <div className="md:hidden mb-12 text-center">
-            <div className="h-14 w-14 bg-primary rounded-md flex items-center justify-center mx-auto mb-4">
-              <Building2 className="h-7 w-7 text-secondary-container" />
+            <div className="inline-flex items-center justify-center mx-auto mb-6 bg-primary rounded-md p-4 shadow-md">
+              <img src={ritLogo} alt="RIT Kottayam" className="h-14 w-auto object-contain" />
             </div>
-            <h1 className="font-serif text-3xl text-primary tracking-tight">RGIT Portal</h1>
+            <h1 className="font-serif text-3xl text-primary tracking-tight mt-4">RGIT Portal</h1>
             <p className="font-sans text-sm text-on-surface-variant mt-2">Hostel Allotment System</p>
           </div>
 
           <div className="mb-10 lg:mb-12">
             <h2 className="font-serif text-3xl lg:text-4xl text-primary mb-3">Portal Access</h2>
             <p className="text-base text-on-surface-variant leading-relaxed">
-              Welcome to the demo environment. Select your designated role to continue to the respective dashboard.
+              Enter your designated credentials to securely access your dashboard.
             </p>
           </div>
 
-          <div className="space-y-4">
-            <button
-              onClick={() => handleLogin('student')}
-              disabled={loading}
-              className="w-full flex items-center gap-5 p-5 rounded-md bg-surface-container-low hover:bg-surface-container-highest hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-primary-fixed/50 text-left group"
-            >
-              <div className="bg-surface-container-highest group-hover:bg-primary text-primary group-hover:text-white p-3 rounded-md transition-colors">
-                <GraduationCap className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-sans font-semibold text-on-surface text-base">Student Sign In</p>
-                <p className="font-sans text-sm text-on-surface-variant mt-0.5">Apply for hostels & track status</p>
-              </div>
-            </button>
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div>
+              <label className="form-label" htmlFor="username">Username / College ID</label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="username"
+                required
+                className="input py-3"
+                placeholder="e.g., KTE24CS079"
+              />
+            </div>
+
+            <div>
+              <label className="form-label" htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                className="input py-3"
+                placeholder="••••••••"
+              />
+            </div>
 
             <button
-              onClick={() => handleLogin('advisor')}
+              type="submit"
               disabled={loading}
-              className="w-full flex items-center gap-5 p-5 rounded-md bg-surface-container-low hover:bg-surface-container-highest hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-primary-fixed/50 text-left group"
+              className="btn-primary w-full py-3.5 mt-4 text-base shadow-sm"
             >
-              <div className="bg-surface-container-highest group-hover:bg-primary text-primary group-hover:text-white p-3 rounded-md transition-colors">
-                <Users className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-sans font-semibold text-on-surface text-base">Class Advisor Sign In</p>
-                <p className="font-sans text-sm text-on-surface-variant mt-0.5">Review and verify applications</p>
-              </div>
+              {loading ? 'Authenticating...' : 'Sign In'}
             </button>
-
-            <button
-              onClick={() => handleLogin('warden')}
-              disabled={loading}
-              className="w-full flex items-center gap-5 p-5 rounded-md bg-surface-container-low hover:bg-surface-container-highest hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-primary-fixed/50 text-left group"
-            >
-              <div className="bg-surface-container-highest group-hover:bg-primary text-primary group-hover:text-white p-3 rounded-md transition-colors">
-                <Building2 className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-sans font-semibold text-on-surface text-base">Warden Sign In</p>
-                <p className="font-sans text-sm text-on-surface-variant mt-0.5">Manage rooms & run allotments</p>
-              </div>
-            </button>
-
-            <button
-              onClick={() => handleLogin('admin')}
-              disabled={loading}
-              className="w-full flex items-center gap-5 p-5 rounded-md bg-surface-container-low hover:bg-surface-container-highest hover:-translate-y-0.5 transition-all outline-none focus:ring-2 focus:ring-primary-fixed/50 text-left group"
-            >
-              <div className="bg-surface-container-highest group-hover:bg-primary text-primary group-hover:text-white p-3 rounded-md transition-colors">
-                <Shield className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="font-sans font-semibold text-on-surface text-base">System Admin Sign In</p>
-                <p className="font-sans text-sm text-on-surface-variant mt-0.5">Configure master data</p>
-              </div>
-            </button>
-          </div>
+          </form>
           
-          <div className="mt-12 flex items-center justify-between text-sm font-medium pt-8 border-t border-surface-container-highest">
-            <a href="/register" className="text-secondary hover:text-secondary-container hover:underline underline-offset-4 transition-colors">Create new account</a>
-            <a href="/forgot-password" className="text-on-surface-variant hover:text-primary transition-colors">Forgot password?</a>
+          <div className="mt-12 flex justify-center text-sm font-medium pt-8 border-t border-surface-container-highest">
+            <Link to="/register" className="text-secondary hover:text-secondary-container hover:underline underline-offset-4 transition-colors">
+              Create new account
+            </Link>
           </div>
         </div>
       </div>

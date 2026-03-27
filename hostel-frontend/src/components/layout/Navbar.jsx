@@ -1,5 +1,6 @@
 import { useAuth } from '../../context/AuthContext';
 import { UserCircle } from 'lucide-react';
+import ritLogo from '../../assets/ritlnew.png';
 
 export default function Navbar() {
   const { userRole, user } = useAuth();
