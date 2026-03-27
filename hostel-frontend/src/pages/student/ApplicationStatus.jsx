@@ -112,6 +112,18 @@ export default function ApplicationStatus() {
               </div>
             </div>
 
+            <div className="col-span-1 sm:col-span-2 grid grid-cols-3 gap-4 pt-4 border-t border-surface-container/50">
+               <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded-sm border ${app.pwd_status ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-surface-container text-on-surface-variant/40 border-outline-variant/10'}`}>
+                 PWD: {app.pwd_status ? 'Yes' : 'No'}
+               </div>
+               <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded-sm border ${app.bpl_status ? 'bg-secondary/5 border-secondary/20 text-secondary' : 'bg-surface-container text-on-surface-variant/40 border-outline-variant/10'}`}>
+                 BPL: {app.bpl_status ? 'Yes' : 'No'}
+               </div>
+               <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-2 rounded-sm border ${app.sc_st_status ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-surface-container text-on-surface-variant/40 border-outline-variant/10'}`}>
+                 SC/ST: {app.sc_st_status ? 'Yes' : 'No'}
+               </div>
+            </div>
+
             {app.merit_score && (
               <div className="col-span-1 sm:col-span-2 bg-surface-container-low p-6 rounded-md border border-surface-container">
                 <p className="text-xs text-primary font-semibold tracking-wider mb-4 uppercase">Institutional Merit Index</p>

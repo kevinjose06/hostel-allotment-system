@@ -11,6 +11,9 @@ const schema = z.object({
   academic_year:         z.coerce.number().int().min(2020).max(2035),
   family_annual_income:  z.coerce.number().min(0, 'Must be 0 or more'),
   distance_from_college: z.coerce.number().min(0, 'Must be 0 or more'),
+  bpl_status:            z.boolean().default(false),
+  pwd_status:            z.boolean().default(false),
+  sc_st_status:          z.boolean().default(false),
 });
 
 export default function ApplicationPage() {
@@ -87,6 +90,34 @@ export default function ApplicationPage() {
             <label className="form-label">Distance from Home to College (km) <span className="text-error">*</span></label>
             <input {...register('distance_from_college')} type="number" step="0.1" className="input text-lg py-3" placeholder="e.g. 85.5" />
             {errors.distance_from_college && <p className="form-error">{errors.distance_from_college.message}</p>}
+          </div>
+
+          <div className="pt-6 border-t border-surface-container space-y-4">
+            <label className="form-label mb-4">Reservation & Priority Categories</label>
+            
+            <label className="flex items-center gap-4 p-4 bg-surface-container-low rounded-md border border-outline-variant/10 cursor-pointer hover:bg-surface-container transition-colors">
+              <input {...register('pwd_status')} type="checkbox" className="w-5 h-5 accent-primary" />
+              <div>
+                <span className="block font-semibold text-on-surface text-sm tracking-wide">Persons with Disability (PWD)</span>
+                <span className="text-xs text-on-surface-variant">Priority allocation for verified disability status.</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-4 p-4 bg-surface-container-low rounded-md border border-outline-variant/10 cursor-pointer hover:bg-surface-container transition-colors">
+              <input {...register('bpl_status')} type="checkbox" className="w-5 h-5 accent-secondary" />
+              <div>
+                <span className="block font-semibold text-on-surface text-sm tracking-wide">Below Poverty Line (BPL)</span>
+                <span className="text-xs text-on-surface-variant">Allocated within the reserved seat quota.</span>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-4 p-4 bg-surface-container-low rounded-md border border-outline-variant/10 cursor-pointer hover:bg-surface-container transition-colors">
+              <input {...register('sc_st_status')} type="checkbox" className="w-5 h-5 accent-primary" />
+              <div>
+                <span className="block font-semibold text-on-surface text-sm tracking-wide">SC / ST Category</span>
+                <span className="text-xs text-on-surface-variant">Priority based on community reservation guidelines.</span>
+              </div>
+            </label>
           </div>
 
           <div className="bg-surface-container-low border border-surface-container rounded-md p-6 mt-8">

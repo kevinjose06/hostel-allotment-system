@@ -8,16 +8,23 @@ export const mockDataStore = {
     gender: 'Male',
     date_of_birth: '2004-05-15',
     contact_number: '9876543210',
-    family_annual_income: 150000,
-    distance_from_college: 45.5,
-    bpl_status: false,
-    pwd_status: false,
-    sc_st_status: false,
     class: {
       class_id: 1,
       department: 'Computer Science',
       semester: 3
     }
+  },
+  // New Academics Store (1:1 with student)
+  academics: {
+    student_id: 1,
+    year_of_study: 2,
+    cgpa: 8.5,
+    semester: 3,
+    family_annual_income: 150000,
+    distance_from_college: 45.5,
+    bpl_status: false,
+    pwd_status: false,
+    sc_st_status: false,
   },
   applications: [
     {
@@ -25,6 +32,10 @@ export const mockDataStore = {
       academic_year: 2024,
       family_annual_income: 150000,
       distance_from_college: 45.5,
+      // Status flags also captured in application snapshot
+      bpl_status: false,
+      pwd_status: false,
+      sc_st_status: false,
       status: 'Pending',
       application_date: '2024-06-12T10:00:00Z',
       merit_score: 82.5,
@@ -36,11 +47,6 @@ export const mockDataStore = {
         email: 'student@rgit.ac.in',
         gender: 'Male',
         contact_number: '9876543210',
-        family_annual_income: 150000,
-        distance_from_college: 45.5,
-        bpl_status: false,
-        pwd_status: false,
-        sc_st_status: false,
         class: { department: 'Computer Science' }
       }
     },
@@ -49,6 +55,9 @@ export const mockDataStore = {
       academic_year: 2024,
       family_annual_income: 50000,
       distance_from_college: 120.0,
+      bpl_status: true,
+      pwd_status: false,
+      sc_st_status: false,
       status: 'Approved',
       application_date: '2024-06-10T14:30:00Z',
       merit_score: 95.0,
@@ -60,11 +69,6 @@ export const mockDataStore = {
         email: 'jane@rgit.ac.in',
         gender: 'Female',
         contact_number: '9123456780',
-        family_annual_income: 50000,
-        distance_from_college: 120.0,
-        bpl_status: true,
-        pwd_status: false,
-        sc_st_status: false,
         class: { department: 'Electronics' }
       }
     }

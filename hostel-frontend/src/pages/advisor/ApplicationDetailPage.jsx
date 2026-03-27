@@ -123,15 +123,15 @@ export default function ApplicationDetailPage() {
                  <dd className="flex flex-col gap-3">
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">Persons with Disability (PWD)</span>
-                      {s?.pwd_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.pwd_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
                    </div>
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">Below Poverty Line (BPL)</span>
-                      {s?.bpl_status ? <span className="px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.bpl_status ? <span className="px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
                    </div>
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">SC / ST Reservation</span>
-                      {s?.sc_st_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.sc_st_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
                    </div>
                  </dd>
               </div>

@@ -60,11 +60,15 @@ api.defaults.adapter = async (config) => {
      data = mockDataStore.applications.find(a => a.student_id === 1);
   } else if (config.url === '/application' && config.method === 'post') {
      // Create dummy application
+     const payload = JSON.parse(config.data);
      const newApp = {
        application_id: Math.floor(Math.random() * 1000) + 100,
-       academic_year: JSON.parse(config.data).academic_year,
-       family_annual_income: JSON.parse(config.data).family_annual_income,
-       distance_from_college: JSON.parse(config.data).distance_from_college,
+       academic_year: payload.academic_year,
+       family_annual_income: payload.family_annual_income,
+       distance_from_college: payload.distance_from_college,
+       bpl_status: payload.bpl_status || false,
+       pwd_status: payload.pwd_status || false,
+       sc_st_status: payload.sc_st_status || false,
        status: 'Pending',
        application_date: new Date().toISOString(),
        merit_score: 95.5,
