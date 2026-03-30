@@ -4,7 +4,7 @@ from app.middleware.auth import require_role
 from app.schemas.admin import (
     CreateAdvisorRequest, UpdateAdvisorRequest,
     CreateClassRequest, CreateHostelRequest,
-    UpdateHostelRequest, CreateWardenRequest
+    UpdateHostelRequest, CreateWardenRequest, UpdateWardenRequest
 )
 from app.utils.response import success_response, error_response
 
@@ -158,6 +158,27 @@ async def update_hostel(hostel_id: int, body: UpdateHostelRequest, user=_admin):
     return success_response("Hostel updated", resp.data[0] if resp.data else None)
 
 
+# ── POST /api/v1/admin/hostel/{hostel_id}/assign-warden ──────────────────────
+@router.post("/hostel/{hostel_id}/assign-warden")
+async def assign_warden_to_hostel(hostel_id: int, body: dict, user=_admin):
+    warden_id = body.get("warden_id")
+    
+    # 1. Unassign current warden(s) from this hostel
+    supabase_admin.table("warden").update({"hostel_id": None}).eq("hostel_id", hostel_id).execute()
+    
+    # 2. Assign new warden if provided
+    if warden_id:
+        resp = (
+            supabase_admin.table("warden")
+            .update({"hostel_id": hostel_id})
+            .eq("warden_id", warden_id)
+            .execute()
+        )
+        return success_response("Warden assigned", resp.data[0] if resp.data else None)
+    
+    return success_response("Warden unassigned")
+
+
 # ── POST /api/v1/admin/warden ────────────────────────────────────────────────
 @router.post("/warden", status_code=201)
 async def create_warden(body: CreateWardenRequest, user=_admin):
@@ -190,6 +211,46 @@ async def create_warden(body: CreateWardenRequest, user=_admin):
     return success_response("Warden created", db_resp.data[0])
 
 
+# ── GET /api/v1/admin/wardens ────────────────────────────────────────────────
+@router.get("/wardens")
+async def get_all_wardens(user=_admin):
+    resp = (
+        supabase_admin.table("warden")
+        .select("*, hostel(*)")
+        .order("name")
+        .execute()
+    )
+    return success_response("Wardens", resp.data)
+
+
+# ── PUT /api/v1/admin/warden/{warden_id} ─────────────────────────────────────
+@router.put("/warden/{warden_id}")
+async def update_warden(warden_id: int, body: UpdateWardenRequest, user=_admin):
+    updates = body.model_dump(exclude_none=True)
+    if not updates:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    resp = (
+        supabase_admin.table("warden")
+        .update(updates)
+        .eq("warden_id", warden_id)
+        .execute()
+    )
+    return success_response("Warden updated", resp.data[0] if resp.data else None)
+
+
+# ── DELETE /api/v1/admin/warden/{warden_id} ──────────────────────────────────
+@router.delete("/warden/{warden_id}")
+async def delete_warden(warden_id: int, user=_admin):
+    resp = (
+        supabase_admin.table("warden")
+        .delete()
+        .eq("warden_id", warden_id)
+        .execute()
+    )
+    return success_response("Warden deleted")
+
+
 # ── GET /api/v1/admin/stats ──────────────────────────────────────────────────
 @router.get("/stats")
 async def get_dashboard_stats(user=_admin):
@@ -213,3 +274,19 @@ async def get_dashboard_stats(user=_admin):
         "allocations": allocations.data,
         "hostels": hostels.data
     })
+
+
+# ── GET /api/v1/admin/warden/me ──────────────────────────────────────────────
+# Used by a logged-in warden to find their own profile + assigned hostel
+@router.get("/warden/me")
+async def get_my_warden_profile(user=Depends(require_role(["warden"]))):
+    resp = (
+        supabase_admin.table("warden")
+        .select("*, hostel(*)")
+        .eq("auth_uid", user.id)
+        .maybe_single()
+        .execute()
+    )
+    if not resp.data:
+        raise HTTPException(status_code=404, detail="Warden profile not found")
+    return success_response("Warden profile", resp.data)

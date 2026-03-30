@@ -46,4 +46,26 @@ export const adminService = {
     const response = await api.put(`/admin/hostel/${hostelId}`, updates);
     return response.data.data;
   },
+  async assignWarden(hostelId, wardenId) {
+    const response = await api.post(`/admin/hostel/${hostelId}/assign-warden`, { warden_id: wardenId });
+    return response.data;
+  },
+
+  // ── Wardens ──────────────────────────────────────────────────────────────────
+  async getWardens() {
+    const response = await api.get('/admin/wardens');
+    return response.data.data;
+  },
+  async createWarden(wardenData) {
+    const response = await api.post('/admin/warden', wardenData);
+    return response.data.data;
+  },
+  async updateWarden(wardenId, updates) {
+    const response = await api.put(`/admin/warden/${wardenId}`, updates);
+    return response.data.data;
+  },
+  async deleteWarden(wardenId) {
+    const response = await api.delete(`/admin/warden/${wardenId}`);
+    return response.data;
+  },
 };

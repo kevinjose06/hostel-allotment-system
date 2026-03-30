@@ -19,7 +19,7 @@ export default function WardenDashboard() {
         <div className="relative z-10">
           <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Warden Dashboard</h1>
           <p className="font-sans text-primary-fixed-dim max-w-2xl leading-relaxed text-lg">
-            Oversee your designated infrastructure, trigger merit-based allotment protocols, and audit final manifest rosters.
+            Manage your hostel, run allotment for your assigned building, and review room assignment results.
           </p>
         </div>
       </div>
@@ -29,8 +29,8 @@ export default function WardenDashboard() {
           <div className="p-5 bg-secondary/10 text-secondary border border-secondary/20 rounded-md mb-6 shrink-0">
              <ListOrdered className="w-8 h-8" />
           </div>
-          <p className="font-serif text-2xl font-bold text-primary mb-2">Trigger Allotment</p>
-          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">Execute the institutional algorithmic merit stratifier and rank allocation logic for the designated session.</p>
+          <p className="font-serif text-2xl font-bold text-primary mb-2">Run Allotment</p>
+          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">Assign available rooms to eligible students based on their merit score for the current academic year.</p>
           <a href="/warden/allotment" className="btn-primary w-full py-3">Run Engine</a>
         </div>
         
@@ -38,8 +38,8 @@ export default function WardenDashboard() {
           <div className="p-5 bg-primary/10 text-primary border border-primary/20 rounded-md mb-6 shrink-0">
              <FileText className="w-8 h-8" />
           </div>
-          <p className="font-serif text-2xl font-bold text-primary mb-2">Audit Manifest</p>
-          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">Access the generated merit list, categorical allocation results, and specific student housing assignments.</p>
+          <p className="font-serif text-2xl font-bold text-primary mb-2">View Results</p>
+          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">See the full list of room assignments, category-wise allocation results, and individual student details.</p>
           <a href="/warden/results" className="font-bold uppercase tracking-widest text-[11px] w-full py-3.5 bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30 rounded-md transition-colors block">
             Review Documents
           </a>
@@ -64,7 +64,7 @@ export default function WardenDashboard() {
 
       <div>
         <div className="flex items-center justify-between border-b border-surface-container pb-4 mb-8">
-          <h2 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Monitored Institutional Infrastructure</h2>
+          <h2 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Hostel Overview</h2>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {hostels.map(h => <HostelOccupancyCard key={h.hostel_id} hostel={h} />)}

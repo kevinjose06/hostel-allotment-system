@@ -9,11 +9,12 @@ from app.utils.response import success_response
 router = APIRouter(prefix="/api/v1/allotment", tags=["Allotment"])
 
 _warden_admin = Depends(require_role(["admin", "warden"]))
+_warden_only = Depends(require_role(["warden"]))
 
 
 # ── POST /api/v1/allotment/run ───────────────────────────────────────────────
 @router.post("/run")
-async def trigger_allotment(body: AllotmentRequest, user=_warden_admin):
+async def trigger_allotment(body: AllotmentRequest, user=_warden_only):
     # Verify hostel exists
     hostel_resp = (
         supabase_admin.table("hostel")

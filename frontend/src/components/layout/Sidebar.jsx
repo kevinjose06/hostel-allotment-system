@@ -23,8 +23,8 @@ const NAV_CONFIG = {
     { label: 'Advisors', icon: Users, to: '/admin/advisors' },
     { label: 'Classes', icon: BookOpen, to: '/admin/classes' },
     { label: 'Hostels', icon: Building2, to: '/admin/hostels' },
+    { label: 'Wardens', icon: Users, to: '/admin/wardens' },
     { label: 'All Applications', icon: FileText, to: '/admin/applications' },
-    { label: 'Allotment', icon: CheckSquare, to: '/warden/allotment' },
   ],
   warden: [
     { label: 'Dashboard', icon: LayoutDashboard, to: '/warden/dashboard' },

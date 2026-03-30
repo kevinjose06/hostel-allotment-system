@@ -5,7 +5,7 @@ from typing import Optional
 class CreateAdvisorRequest(BaseModel):
     name: str
     department: str
-    email: EmailStr
+    email: str
     contact_no: Optional[str] = None
     temp_password: str = "TempPass@1234"
 
@@ -40,7 +40,11 @@ class UpdateHostelRequest(BaseModel):
 
 class CreateWardenRequest(BaseModel):
     name: str
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     contact_no: Optional[str] = None
     hostel_id: int
     temp_password: str = "TempPass@1234"
+class UpdateWardenRequest(BaseModel):
+    name: Optional[str] = None
+    contact_no: Optional[str] = None
+    hostel_id: Optional[int] = None

@@ -21,6 +21,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageAdvisorsPage from './pages/admin/ManageAdvisorsPage';
 import ManageClassesPage from './pages/admin/ManageClassesPage';
 import ManageHostelsPage from './pages/admin/ManageHostelsPage';
+import ManageWardensPage from './pages/admin/ManageWardensPage';
 
 import WardenDashboard from './pages/warden/WardenDashboard';
 import AllotmentPage from './pages/warden/AllotmentPage';
@@ -58,6 +59,7 @@ export default function App() {
             <Route path="/admin/advisors" element={<ManageAdvisorsPage />} />
             <Route path="/admin/classes" element={<ManageClassesPage />} />
             <Route path="/admin/hostels" element={<ManageHostelsPage />} />
+            <Route path="/admin/wardens" element={<ManageWardensPage />} />
             <Route path="/admin/applications" element={<ApplicationsListPage isAdmin />} />
           </Route>
 

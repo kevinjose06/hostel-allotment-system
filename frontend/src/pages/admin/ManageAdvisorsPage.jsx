@@ -47,25 +47,57 @@ export default function ManageAdvisorsPage() {
 
   const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }));
 
+  const validateForm = () => {
+    if (form.name.trim().length < 3) return "Name must be at least 3 characters.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return "Invalid email address.";
+    if (form.contact_no && !/^\d{10}$/.test(form.contact_no)) return "Contact number must be exactly 10 digits.";
+    if (!form.department) return "Please select a department.";
+    return null;
+  };
+
+  const formatBackendError = (err) => {
+    const detail = err?.response?.data?.detail;
+    if (Array.isArray(detail)) {
+      return detail.map(d => `${d.loc[d.loc.length - 1]}: ${d.msg}`).join(', ');
+    }
+    return typeof detail === 'string' ? detail : 'Operation failed. Please try again.';
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    const error = validateForm();
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
     setSaving(true);
+    
+    // Sanitize payload
+    const payload = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      department: form.department,
+      contact_no: form.contact_no.trim() || null
+    };
+
     try {
       if (editingAdvisor) {
         await adminService.updateAdvisor(editingAdvisor.advisor_id, {
-          name: form.name,
-          department: form.department,
-          contact_no: form.contact_no
+          name: payload.name,
+          department: payload.department,
+          contact_no: payload.contact_no
         });
         toast.success('Advisor updated successfully!');
       } else {
-        await adminService.createAdvisor(form);
+        await adminService.createAdvisor(payload);
         toast.success('Advisor created! A Supabase auth account has been made.');
       }
       setIsModalOpen(false);
       fetchAdvisors();
     } catch (err) {
-      toast.error(err?.response?.data?.detail || 'Operation failed. Please try again.');
+      toast.error(formatBackendError(err));
     } finally {
       setSaving(false);
     }
