@@ -44,9 +44,9 @@ export default function ApplicationDetailPage() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-4">
         <div>
           <h1 className="font-serif text-4xl text-primary tracking-tight">
-            Dossier <span className="text-secondary font-mono text-3xl ml-2">#{id}</span>
+            Application <span className="text-secondary font-mono text-3xl ml-2">#{id}</span>
           </h1>
-          <p className="font-sans text-on-surface-variant mt-2 text-base">Verify structural and categorical details before official determination.</p>
+          <p className="font-sans text-on-surface-variant mt-2 text-base">Review the student's details before approving or rejecting.</p>
         </div>
         <div className="shrink-0">
           <StatusBadge status={app.status} />
@@ -79,20 +79,20 @@ export default function ApplicationDetailPage() {
           {/* Personal Details */}
           <div>
             <div className="flex items-center justify-between border-b border-surface-container pb-4 mb-6">
-               <h3 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Biographical Information</h3>
+               <h3 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Student Details</h3>
                <User className="w-4 h-4 text-on-surface-variant/50" />
             </div>
             <dl className="space-y-1 text-sm">
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
-                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Assigned Gender</dt>
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Gender</dt>
                 <dd className="font-medium text-on-surface text-base">{s?.gender}</dd>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
-                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Institutional Email</dt>
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Email</dt>
                 <dd className="font-medium text-on-surface text-base">{s?.email}</dd>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
-                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Primary Contact</dt>
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Phone Number</dt>
                 <dd className="font-medium text-on-surface text-base">{s?.contact_number}</dd>
               </div>
             </dl>
@@ -101,7 +101,7 @@ export default function ApplicationDetailPage() {
           {/* Assessment Details */}
           <div>
             <div className="flex items-center justify-between border-b border-surface-container pb-4 mb-6">
-               <h3 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Metric Assessment factors</h3>
+               <h3 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Assessment Details</h3>
                <HandHeart className="w-4 h-4 text-on-surface-variant/50" />
             </div>
             <dl className="space-y-1 text-sm">
@@ -113,25 +113,25 @@ export default function ApplicationDetailPage() {
               </div>
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
                 <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                  Transit Distance <MapPin className="w-3.5 h-3.5"/>
+                  Distance from College <MapPin className="w-3.5 h-3.5"/>
                 </dt>
                 <dd className="font-semibold text-primary text-base">{app?.distance_from_college} km</dd>
               </div>
               
               <div className="pt-4">
-                 <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-widest mb-4">Verification Flags</dt>
+                 <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-widest mb-4">Categories</dt>
                  <dd className="flex flex-col gap-3">
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">Persons with Disability (PWD)</span>
-                      {app?.pwd_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.pwd_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Yes</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">No</span>}
                    </div>
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">Below Poverty Line (BPL)</span>
-                      {app?.bpl_status ? <span className="px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.bpl_status ? <span className="px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Yes</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">No</span>}
                    </div>
                    <div className="flex items-center justify-between bg-surface-container p-3.5 rounded-sm border border-outline-variant/10">
                       <span className="font-medium text-on-surface text-sm">SC / ST Reservation</span>
-                      {app?.sc_st_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Active</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">Null</span>}
+                      {app?.sc_st_status ? <span className="px-2.5 py-1 bg-primary/10 text-primary border border-primary/20 font-bold text-[10px] tracking-widest rounded-sm uppercase">Yes</span> : <span className="text-on-surface-variant text-[10px] font-bold tracking-widest uppercase">No</span>}
                    </div>
                  </dd>
               </div>
@@ -143,7 +143,7 @@ export default function ApplicationDetailPage() {
       {app.status === 'Pending' && (
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
-          <h3 className="font-serif text-2xl text-primary mb-8 pl-4">Administrative Authority</h3>
+          <h3 className="font-serif text-2xl text-primary mb-8 pl-4">Action Panel</h3>
 
           {!showRejectForm && !showReturnForm ? (
             <div className="flex gap-4 flex-col sm:flex-row pl-4">
@@ -152,25 +152,25 @@ export default function ApplicationDetailPage() {
                 disabled={approveMutation.isPending}
                 className="flex-1 py-4 bg-secondary text-on-secondary hover:bg-secondary-container hover:text-on-secondary-container rounded-md font-bold tracking-widest uppercase text-xs transition-colors shadow-sm border border-secondary flex justify-center items-center gap-2"
               >
-                <Check className="w-4 h-4" /> Grant Approval
+                <Check className="w-4 h-4" /> Approve
               </button>
               <button 
                 onClick={() => setShowReturnForm(true)}
                 className="flex-1 py-4 bg-surface-container-high text-on-surface hover:bg-surface-container-highest rounded-md font-bold tracking-widest uppercase text-xs transition-colors shadow-sm border border-outline-variant/30 flex justify-center items-center gap-2"
               >
-                <RotateCcw className="w-4 h-4" /> Return Query
+                <RotateCcw className="w-4 h-4" /> Return to Student
               </button>
               <button 
                 onClick={() => setShowRejectForm(true)}
                 className="flex-1 py-4 bg-error text-white hover:bg-error/90 rounded-md font-bold tracking-widest uppercase text-xs transition-colors shadow-sm flex justify-center items-center gap-2"
               >
-                <X className="w-4 h-4" /> Issue Rejection
+                <X className="w-4 h-4" /> Reject
               </button>
             </div>
           ) : (
              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-200 pl-4">
               <label className="block text-xs font-bold uppercase tracking-widest text-primary">
-                 {showRejectForm ? 'Provide Justification for Rejection' : 'Detail Clarification Requirements (Returned to Student)'} <span className="text-error">*</span>
+                 {showRejectForm ? 'Reason for Rejection' : 'Reason for Return'} <span className="text-error">*</span>
               </label>
               <textarea
                 value={remarks}
@@ -178,7 +178,7 @@ export default function ApplicationDetailPage() {
                 rows={4}
                 autoFocus
                 className="input w-full text-base p-5"
-                placeholder={showRejectForm ? 'Detail the institutional policy or missing criteria causing this rejection...' : 'Enumerate the structural omissions that the student must clarify...'}
+                placeholder={showRejectForm ? 'Explain why this application is being rejected...' : 'Explain what needs to be fixed...'}
               />
               <div className="flex gap-4 pt-2">
                 <button
@@ -188,13 +188,13 @@ export default function ApplicationDetailPage() {
                     showRejectForm ? 'bg-error hover:bg-error/90 disabled:bg-error/50' : 'bg-surface-container-highest text-on-surface hover:bg-outline-variant/30 border border-outline-variant/30 disabled:opacity-50'
                   }`}
                 >
-                  Finalize {showRejectForm ? 'Rejection' : 'Return Action'}
+                  Confirm {showRejectForm ? 'Rejection' : 'Return'}
                 </button>
                 <button 
                   onClick={() => { setShowRejectForm(false); setShowReturnForm(false); }}
                   className="flex-1 py-4 bg-surface-container text-on-surface hover:bg-surface-container-high font-bold uppercase tracking-widest text-xs rounded-md transition-colors"
                 >
-                  Abort Action
+                  Cancel
                 </button>
               </div>
             </div>

@@ -32,7 +32,7 @@ export default function StudentDashboard() {
       <div className="bg-primary rounded-md p-8 md:p-12 text-white shadow-ambient relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container opacity-50"></div>
         <div className="relative z-10">
-          <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Academic Year 2024</h1>
+          <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Welcome to Student Portal</h1>
           <p className="font-sans text-primary-fixed-dim max-w-2xl leading-relaxed text-lg">
             Apply for hostel accommodation, track your application status, and manage your profile details.
           </p>

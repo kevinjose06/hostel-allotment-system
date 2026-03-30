@@ -28,9 +28,9 @@ export default function AdminDashboard() {
       <div className="bg-primary rounded-md p-8 md:p-12 text-white shadow-ambient relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-container opacity-50"></div>
         <div className="relative z-10">
-          <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Institutional Config Matrix</h1>
+          <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Admin Dashboard</h1>
           <p className="font-sans text-primary-fixed-dim max-w-2xl leading-relaxed text-lg">
-            System overview and top-level infrastructure configuration.
+            System overview and statistics for hostel allotment and occupancy.
           </p>
         </div>
       </div>
@@ -38,10 +38,10 @@ export default function AdminDashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {[
-          { label: 'Total Dossiers', value: stats?.applications?.length ?? 0, icon: FileText, color: 'primary' },
+          { label: 'Total Applications', value: stats?.applications?.length ?? 0, icon: FileText, color: 'primary' },
           { label: 'Pending Action', value: statusCounts['Pending'] ?? 0, icon: Users, color: 'secondary' },
           { label: 'Ready for Allotment', value: statusCounts['Approved'] ?? 0, icon: CheckSquare, color: 'primary' },
-          { label: 'Max Capacity', value: hostels.reduce((acc, h) => acc + h.total_capacity, 0), icon: Building2, color: 'secondary' },
+          { label: 'Total Capacity', value: hostels.reduce((acc, h) => acc + h.total_capacity, 0), icon: Building2, color: 'secondary' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div key={label} className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-6 flex items-center gap-5 hover:border-outline-variant/30 transition-colors">
             <div className={`p-4 rounded-md border ${color === 'primary' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-secondary/10 text-secondary border-secondary/20'} shrink-0`}>
@@ -58,7 +58,7 @@ export default function AdminDashboard() {
       {/* Hostel Occupancy Cards */}
       <div>
         <div className="flex items-center justify-between border-b border-surface-container pb-4 mb-8">
-          <h2 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Live Institutional Occupancy Matrix</h2>
+          <h2 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Current Hostel Occupancy</h2>
         </div>
         
         {hostels.length > 0 ? (
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
         ) : (
           <div className="bg-surface-container-lowest rounded-md border border-outline-variant/10 shadow-ambient p-16 text-center">
              <Building2 className="w-12 h-12 text-outline-variant/50 mx-auto mb-6" />
-             <p className="text-on-surface-variant font-bold text-lg">No infrastructure mapped yet.</p>
+             <p className="text-on-surface-variant font-bold text-lg">No hostels have been created yet.</p>
           </div>
         )}
       </div>

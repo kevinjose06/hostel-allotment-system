@@ -24,7 +24,7 @@ export default function AdvisorDashboard() {
         <div className="relative z-10">
           <h1 className="font-serif text-4xl lg:text-5xl tracking-tight mb-4 text-white">Class Advisor Dashboard</h1>
           <p className="font-sans text-primary-fixed-dim max-w-2xl leading-relaxed text-lg">
-            Review, approve, or return applications submitted by students in your assigned institutional class.
+            Review and approve hostel applications submitted by students in your class.
           </p>
         </div>
       </div>
@@ -36,7 +36,7 @@ export default function AdvisorDashboard() {
           </div>
           <div>
             <p className="text-3xl font-serif text-primary mb-1">{stats.total}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Total <span>•</span> Dossiers</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Total Applications</p>
           </div>
         </div>
 
@@ -46,7 +46,7 @@ export default function AdvisorDashboard() {
           </div>
           <div>
             <p className="text-3xl font-serif text-primary mb-1">{stats.pending}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Pending <span>•</span> Action</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Pending Review</p>
           </div>
         </div>
 
@@ -56,7 +56,7 @@ export default function AdvisorDashboard() {
           </div>
           <div>
             <p className="text-3xl font-serif text-primary mb-1">{stats.approved}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Officially <span>•</span> Approved</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Approved</p>
           </div>
         </div>
 
@@ -66,20 +66,20 @@ export default function AdvisorDashboard() {
           </div>
           <div>
             <p className="text-3xl font-serif text-primary mb-1">{stats.returned}</p>
-            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Returned <span>•</span> Student</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-on-surface-variant flex gap-2 items-center">Returned to Student</p>
           </div>
         </div>
       </div>
 
       <div className="bg-surface-container-low rounded-md border border-surface-container p-8 flex flex-col sm:flex-row items-center justify-between gap-6 mt-10">
         <div>
-          <h2 className="font-serif text-2xl text-primary mb-2">Application Review Queue</h2>
+          <h2 className="font-serif text-2xl text-primary mb-2">Pending Applications Queue</h2>
           <p className="font-sans text-sm text-on-surface-variant leading-relaxed max-w-2xl">
-            You have <span className="font-bold text-secondary">{stats.pending}</span> applications waiting for your official approval. Please verify student documentation, institutional income records, and distance metric before proceeding.
+            You have <span className="font-bold text-secondary">{stats.pending}</span> applications waiting for your review. Please verify the student's details and attached documents.
           </p>
         </div>
         <Link to="/advisor/applications" className="btn-primary whitespace-nowrap px-8 py-3.5 mt-4 sm:mt-0">
-          Go to Queue
+          Review Applications
         </Link>
       </div>
     </div>

@@ -31,9 +31,9 @@ export default function ApplicationsListPage({ isAdmin = false }) {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
           <h1 className="font-serif text-4xl text-primary tracking-tight">
-            {isAdmin ? 'System-Wide Applications' : 'Class Applications Roster'}
+            {isAdmin ? 'All Applications' : 'Class Applications'}
           </h1>
-          <p className="font-sans text-on-surface-variant mt-2 text-base">Review official student applications for institutional accommodation.</p>
+          <p className="font-sans text-on-surface-variant mt-2 text-base">Review student hostel applications.</p>
         </div>
         <div className="inline-flex items-center px-4 py-1.5 rounded-sm border border-outline-variant/30 bg-surface-container-low text-primary font-bold text-xs uppercase tracking-widest shrink-0">
           Total Count: {filtered.length}
@@ -48,7 +48,7 @@ export default function ApplicationsListPage({ isAdmin = false }) {
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="input pl-12 h-12 w-full text-base"
-            placeholder="Query by student name or exact college ID..."
+            placeholder="Search by student name or college ID..."
           />
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 shrink-0">
@@ -78,7 +78,7 @@ export default function ApplicationsListPage({ isAdmin = false }) {
                 <th className="th">College ID</th>
                 <th className="th hidden md:table-cell">Department</th>
                 <th className="th hidden lg:table-cell">Category</th>
-                <th className="th hidden sm:table-cell">Calculated Rank</th>
+                <th className="th hidden sm:table-cell">Merit Score</th>
                 <th className="th">Status</th>
                 <th className="th text-right">Action</th>
               </tr>
@@ -114,7 +114,7 @@ export default function ApplicationsListPage({ isAdmin = false }) {
                         to={`/advisor/application/${app.application_id}`}
                         className="inline-flex font-bold text-xs uppercase tracking-widest text-primary hover:text-primary-fixed hover:bg-surface-container border border-transparent hover:border-outline-variant/30 px-4 py-2 rounded-sm transition-colors"
                       >
-                        Initiate Review
+                        Review
                       </Link>
                     )}
                   </td>
@@ -127,7 +127,7 @@ export default function ApplicationsListPage({ isAdmin = false }) {
                     <div className="flex justify-center mb-4">
                       <Search className="h-8 w-8 text-outline-variant/50" />
                     </div>
-                    <p className="font-sans font-medium text-base">No institutional applications located for this query.</p>
+                    <p className="font-sans font-medium text-base">No applications found.</p>
                   </td>
                 </tr>
               )}

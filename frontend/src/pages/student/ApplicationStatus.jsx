@@ -21,9 +21,9 @@ export default function ApplicationStatus() {
           <FileText className="h-10 w-10 text-primary" />
         </div>
         <h2 className="font-serif text-3xl font-bold text-primary mb-4">No Active Application</h2>
-        <p className="text-on-surface-variant text-base mb-10 max-w-sm mx-auto">You do not currently have an active official hostel application for this academic session.</p>
+        <p className="text-on-surface-variant text-base mb-10 max-w-sm mx-auto">You have not submitted a hostel application for this year.</p>
         <Link to="/student/apply" className="btn-primary inline-flex">
-          Initiate New Application
+          Start New Application
         </Link>
       </div>
     );
@@ -40,14 +40,14 @@ export default function ApplicationStatus() {
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="mb-8">
         <h1 className="font-serif text-4xl text-primary tracking-tight">Application Tracker</h1>
-        <p className="font-sans text-on-surface-variant mt-2 text-base">Monitor the live progress and administrative status of your accommodation request.</p>
+        <p className="font-sans text-on-surface-variant mt-2 text-base">Track the progress of your hostel application.</p>
       </div>
 
       <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
         {/* Header Ribbon */}
         <div className="bg-surface-container-low border-b border-surface-container px-8 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div>
-            <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] mb-1.5">Dossier Reference</p>
+            <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] mb-1.5">Application ID</p>
             <p className="font-mono font-bold text-primary text-xl">#{app.application_id}</p>
           </div>
           <div className="flex items-center gap-4">
@@ -107,7 +107,7 @@ export default function ApplicationStatus() {
                 <MapPin className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Distance Profile</p>
+                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Distance from College</p>
                 <p className="font-semibold text-primary text-lg">{app.distance_from_college} km</p>
               </div>
             </div>
@@ -126,7 +126,7 @@ export default function ApplicationStatus() {
 
             {app.merit_score && (
               <div className="col-span-1 sm:col-span-2 bg-surface-container-low p-6 rounded-md border border-surface-container">
-                <p className="text-xs text-primary font-semibold tracking-wider mb-4 uppercase">Institutional Merit Index</p>
+                <p className="text-xs text-primary font-semibold tracking-wider mb-4 uppercase">Merit Score</p>
                 <MeritScoreBar score={app.merit_score} />
               </div>
             )}
@@ -145,7 +145,7 @@ export default function ApplicationStatus() {
                 </div>
                 <div>
                   <p className="text-sm font-bold uppercase tracking-wider mb-2">
-                    Official Remarks ({app.status})
+                    Remarks ({app.status})
                   </p>
                   <p className="text-sm leading-relaxed">
                     {app.remarks}
@@ -165,11 +165,11 @@ export default function ApplicationStatus() {
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 relative z-10">
                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-sm border border-white/10">
-                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Hostel Designation</span>
+                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Allotted Hostel</span>
                   <span className="font-serif text-white text-xl">{app.allocation.hostel.hostel_name}</span>
                 </div>
                 <div className="bg-white/10 backdrop-blur-sm p-5 rounded-sm border border-white/10">
-                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Quota Category</span>
+                  <span className="text-secondary-container/80 block text-xs font-semibold mb-2 uppercase tracking-wider">Allotment Category</span>
                   <span className="font-sans font-medium text-white text-lg">{app.allocation.category?.replace('_', ' ')}</span>
                 </div>
               </div>
