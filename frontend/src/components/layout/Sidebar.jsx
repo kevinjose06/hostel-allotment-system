@@ -12,7 +12,7 @@ const NAV_CONFIG = {
     { label: 'My Profile', icon: User, to: '/student/profile' },
     { label: 'Apply for Hostel', icon: FileText, to: '/student/apply' },
     { label: 'Application Status', icon: CheckSquare, to: '/student/status' },
-    { label: 'My Documents', icon: BookOpen, to: '/student/documents' },
+
   ],
   advisor: [
     { label: 'Dashboard', icon: LayoutDashboard, to: '/advisor/dashboard' },

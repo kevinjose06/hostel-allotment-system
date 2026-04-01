@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { authService } from '../../services/authService';
 import { Link, useNavigate } from 'react-router-dom';
-import { supabase } from '../../lib/supabaseClient';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { getFriendlyErrorMessage } from '../../utils/errorHelpers';
 
@@ -33,14 +33,8 @@ export default function RegisterPage() {
   useEffect(() => {
     async function fetchClasses() {
       try {
-        const { data, error } = await supabase
-          .from('class')
-          .select('class_id, degree_program, department, year, division')
-          .order('degree_program')
-          .order('year');
-        
-        if (error) throw error;
-        setClasses(data || []);
+        const response = await api.get('/student/classes');
+        setClasses(response.data.data || []);
       } catch (err) {
         toast.error('Failed to load official classes');
       } finally {
@@ -52,7 +46,13 @@ export default function RegisterPage() {
 
   const onSubmit = async (data) => {
     try {
-      await authService.registerStudent(data);
+      const selectedClass = classes.find(c => c.class_id === Number(data.class_id));
+      const payload = { 
+        ...data, 
+        department: selectedClass ? selectedClass.department : null 
+      };
+      
+      await authService.registerStudent(payload);
       toast.success('Registration successful! Please login to continue.');
       navigate('/login');
     } catch (err) {

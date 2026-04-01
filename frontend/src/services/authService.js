@@ -17,7 +17,8 @@ export const authService = {
       gender, 
       date_of_birth, 
       contact_number, 
-      class_id 
+      class_id,
+      department
     } = data;
 
     // 1. Sign up user in Supabase Auth
@@ -49,6 +50,7 @@ export const authService = {
         date_of_birth,
         contact_number,
         email,
+        department,
         class_id: class_id || null, // Allow NULL if not provided
         auth_uid: user.id
       });

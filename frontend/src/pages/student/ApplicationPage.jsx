@@ -8,7 +8,7 @@ import { studentService } from '../../services/studentService';
 import toast from 'react-hot-toast';
 import { getFriendlyErrorMessage } from '../../utils/errorHelpers';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import { User, Home, ShieldAlert, FileCheck } from 'lucide-react';
+import { User, Home, ShieldAlert, FileCheck, UploadCloud } from 'lucide-react';
 
 const schema = z.object({
   academic_year:         z.coerce.number().int().min(2020).max(2035),
@@ -20,7 +20,36 @@ const schema = z.object({
   home_address:          z.string().min(10, 'Please provide a full permanent address'),
   guardian_name:         z.string().min(2, 'Name is required'),
   guardian_contact:      z.string().length(10, 'Contact must be 10 digits'),
-  declaration:           z.boolean().refine(val => val === true, 'You must accept the declaration')
+  declaration:           z.boolean().refine(val => val === true, 'You must accept the declaration'),
+  
+  income_certificate:    z.any().refine((files) => files && files.length > 0, 'Income Certificate is mandatory'),
+  residential_certificate: z.any().refine((files) => files && files.length > 0, 'Residential Certificate is mandatory'),
+  
+  pwd_certificate:       z.any().optional(),
+  bpl_certificate:       z.any().optional(),
+  sc_st_certificate:     z.any().optional(),
+}).superRefine((data, ctx) => {
+  if (data.pwd_status && (!data.pwd_certificate || data.pwd_certificate.length === 0)) {
+    ctx.addIssue({
+      path: ['pwd_certificate'],
+      message: 'Upload PWD valid certificate',
+      code: z.ZodIssueCode.custom,
+    });
+  }
+  if (data.bpl_status && (!data.bpl_certificate || data.bpl_certificate.length === 0)) {
+    ctx.addIssue({
+      path: ['bpl_certificate'],
+      message: 'Upload BPL valid certificate',
+      code: z.ZodIssueCode.custom,
+    });
+  }
+  if (data.sc_st_status && (!data.sc_st_certificate || data.sc_st_certificate.length === 0)) {
+    ctx.addIssue({
+      path: ['sc_st_certificate'],
+      message: 'Upload SC/ST valid certificate',
+      code: z.ZodIssueCode.custom,
+    });
+  }
 });
 
 export default function ApplicationPage() {
@@ -40,7 +69,7 @@ export default function ApplicationPage() {
     queryFn: () => applicationService.getMyApplication()
   });
 
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
     defaultValues: { 
       academic_year: currentYear,
@@ -49,6 +78,10 @@ export default function ApplicationPage() {
       sc_st_status: profile?.sc_st_status || false
     }
   });
+
+  const pwd_status = watch('pwd_status');
+  const bpl_status = watch('bpl_status');
+  const sc_st_status = watch('sc_st_status');
 
   if (loadingProfile || loadingApp) return <LoadingSpinner />;
 
@@ -69,6 +102,19 @@ export default function ApplicationPage() {
 
   const onSubmit = async (data) => {
     try {
+      // 1. Simulate Document Upload for each file field detected
+      const documentFields = ['income_certificate', 'residential_certificate', 'pwd_certificate', 'bpl_certificate', 'sc_st_certificate'];
+      let filesUploaded = 0;
+      for (const field of documentFields) {
+        if (data[field] && data[field].length > 0) {
+          filesUploaded++;
+        }
+      }
+      if (filesUploaded > 0) {
+        toast.success(`Successfully uploaded ${filesUploaded} required document(s) in Demo Mode`);
+      }
+
+      // 2. Submit stateless data to backend service
       await applicationService.submitApplication(data);
       toast.success('Your official application has been submitted!');
       qc.invalidateQueries(['my-application']);
@@ -156,7 +202,58 @@ export default function ApplicationPage() {
           </div>
         </section>
 
-        {/* 3. Residential Details & Guardian */}
+        {/* 3. Statutory Documents & Certificates */}
+        <section className="card p-0 overflow-hidden">
+          <div className="px-6 py-4 bg-surface-container-low border-b border-surface-container flex items-center gap-3">
+            <UploadCloud className="h-5 w-5 text-primary" />
+            <h3 className="font-serif text-lg text-primary uppercase tracking-wider text-sm font-bold">Mandatory Certificates</h3>
+          </div>
+          <div className="p-8 space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="form-label">Income Certificate (PDF/JPG) <span className="text-error">*</span></label>
+                <input {...register('income_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                {errors.income_certificate && <p className="form-error">{errors.income_certificate.message}</p>}
+              </div>
+              <div>
+                <label className="form-label">Residential Verification (PDF/JPG) <span className="text-error">*</span></label>
+                <input {...register('residential_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                {errors.residential_certificate && <p className="form-error">{errors.residential_certificate.message}</p>}
+              </div>
+            </div>
+
+            {(pwd_status || bpl_status || sc_st_status) && (
+              <div className="space-y-4 pt-4 border-t border-surface-container/50">
+                <label className="form-label mb-4">Reservation Verification Documents</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {pwd_status && (
+                    <div>
+                      <label className="form-label">PWD Verification Certificate <span className="text-error">*</span></label>
+                      <input {...register('pwd_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                      {errors.pwd_certificate && <p className="form-error">{errors.pwd_certificate.message}</p>}
+                    </div>
+                  )}
+                  {bpl_status && (
+                    <div>
+                      <label className="form-label">BPL Verification Certificate <span className="text-error">*</span></label>
+                      <input {...register('bpl_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                      {errors.bpl_certificate && <p className="form-error">{errors.bpl_certificate.message}</p>}
+                    </div>
+                  )}
+                  {sc_st_status && (
+                    <div>
+                      <label className="form-label">SC/ST Verification Certificate <span className="text-error">*</span></label>
+                      <input {...register('sc_st_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
+                      {errors.sc_st_certificate && <p className="form-error">{errors.sc_st_certificate.message}</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+
+        {/* 4. Residential Details & Guardian */}
         <section className="card p-0 overflow-hidden">
           <div className="px-6 py-4 bg-surface-container-low border-b border-surface-container flex items-center gap-3">
             <Home className="h-5 w-5 text-primary" />

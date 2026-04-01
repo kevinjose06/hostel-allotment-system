@@ -1,24 +1,50 @@
 import { supabase } from '../lib/supabaseClient';
 
+import api from './api';
+
 export const studentService = {
   /**
    * Fetches the student's unified profile (Personal + Academics + Class)
-   * This uses the v_student_profile database view.
    */
   async getProfile() {
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) throw new Error('Not authenticated');
+    try {
+      // First ensure auth user exists
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-    const { data: profile, error } = await supabase
-      .from('v_student_profile')
-      .select('*')
-      .eq('email', user.email)
-      .maybeSingle();
+      // Fetch from explicit backend API which fetches new columns reliably
+      const response = await api.get('/student/profile');
+      const data = response.data.data;
 
-    if (error) throw error;
-    
-    // Fallback for newly registered users who don't have academics/class yet
-    return profile || { email: user.email, full_name: user.user_metadata?.full_name || 'Student' };
+      // Extract raw academics record
+      const aca = Array.isArray(data.student_academics) ? data.student_academics[0] : data.student_academics;
+
+      // Map to flattened view format that components expect
+      return {
+        ...data,
+        full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+        department: data.department || data.class?.department || 'Not Assigned Yet',
+        college_id: data.college_id || 'N/A',
+        degree_program: data.class?.degree_program,
+        class_year: data.class?.year,
+        division: data.class?.division,
+        advisor_name: data.class?.class_advisor?.name,
+        year_of_study: aca?.year_of_study,
+        cgpa: aca?.cgpa,
+        family_annual_income: aca?.family_annual_income,
+        distance_from_college: aca?.distance_from_college,
+        bpl_status: aca?.bpl_status || false,
+        pwd_status: aca?.pwd_status || false,
+        sc_st_status: aca?.sc_st_status || false
+      };
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        // Fallback for newly registered users whose student record is missing
+        const { data: { user } } = await supabase.auth.getUser();
+        return { email: user?.email, full_name: user?.user_metadata?.full_name || 'Student' };
+      }
+      throw error;
+    }
   },
 
   /**

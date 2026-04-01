@@ -11,7 +11,7 @@ import StudentDashboard from './pages/student/StudentDashboard';
 import StudentProfile from './pages/student/StudentProfile';
 import ApplicationPage from './pages/student/ApplicationPage';
 import ApplicationStatus from './pages/student/ApplicationStatus';
-import DocumentsPage from './pages/student/DocumentsPage';
+
 
 import AdvisorDashboard from './pages/advisor/AdvisorDashboard';
 import ApplicationsListPage from './pages/advisor/ApplicationsListPage';
@@ -43,7 +43,7 @@ export default function App() {
             <Route path="/student/profile" element={<StudentProfile />} />
             <Route path="/student/apply" element={<ApplicationPage />} />
             <Route path="/student/status" element={<ApplicationStatus />} />
-            <Route path="/student/documents" element={<DocumentsPage />} />
+
           </Route>
 
           {/* Advisor Routes */}

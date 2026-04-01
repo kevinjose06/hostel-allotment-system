@@ -62,25 +62,6 @@ export default function StudentDashboard() {
           </Link>
         </div>
 
-        {/* Documents Widget */}
-        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
-          <div className="flex items-start justify-between mb-6">
-            <div className="p-3 bg-surface-container-low text-secondary-container rounded-md">
-              <Clock className="h-6 w-6 text-secondary" />
-            </div>
-          </div>
-          <h2 className="font-serif text-2xl text-primary mb-2">My Documents</h2>
-          <p className="font-sans text-sm text-on-surface-variant leading-relaxed mb-8 flex-1">
-            Upload and manage your supporting documents (Income Certificate, Caste Certificate, PWD).
-          </p>
-          <Link 
-            to="/student/documents"
-            className="btn-secondary w-full border border-outline-variant/20"
-          >
-            Manage Documents
-          </Link>
-        </div>
-
         {/* Profile Widget */}
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-6">

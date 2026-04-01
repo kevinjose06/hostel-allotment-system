@@ -64,7 +64,7 @@ export default function StudentProfile() {
             <div className="md:col-span-2">
               <p className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Department</p>
               <p className="text-on-surface text-base">
-                {s.department || 'Not Assigned Yet'}
+                {s.department || s.class?.department || 'Not Assigned Yet'}
               </p>
             </div>
           </div>
