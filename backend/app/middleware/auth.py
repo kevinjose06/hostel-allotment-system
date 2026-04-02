@@ -20,8 +20,12 @@ async def get_current_user(
         # Ensure role is available in metadata for downstream checks
         return response.user
     except Exception as e:
-        print(f"Auth Error: {e}")
-        raise HTTPException(status_code=401, detail="Authentication failed")
+        # CRITICAL: This log will appear in your Render 'Logs' tab
+        print(f"❌ SECURITY AUTH ERROR: {str(e)}")
+        raise HTTPException(
+            status_code=401, 
+            detail=f"Authentication failed: {str(e)}"
+        )
 
 
 def require_role(allowed_roles: List[str]):
