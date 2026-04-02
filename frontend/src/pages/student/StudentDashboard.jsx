@@ -54,12 +54,22 @@ export default function StudentDashboard() {
               ? `Your application #${app.application_id} was submitted on ${new Date(app.application_date).toLocaleDateString()}.`
               : "You haven't submitted a hostel application for the current academic year yet."}
           </p>
-          <Link 
-            to={app ? "/student/status" : "/student/apply"}
-            className="btn-primary w-full"
-          >
-            {app ? "Track Status" : "Start Application"}
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 mt-auto">
+            <Link 
+              to={app ? "/student/status" : "/student/apply"}
+              className={`btn-primary flex-1 ${!app ? 'w-full' : ''}`}
+            >
+              {app ? "Track Status" : "Start Application"}
+            </Link>
+            {app && ['Pending', 'Returned'].includes(app.status) && (
+              <Link 
+                to="/student/apply"
+                className="btn-secondary flex-1 border border-outline-variant/20"
+              >
+                Edit Application
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Profile Widget */}

@@ -50,8 +50,7 @@ export const authService = {
         date_of_birth,
         contact_number,
         email,
-        department,
-        class_id: class_id || null, // Allow NULL if not provided
+        class_id: class_id || null,
         auth_uid: user.id
       });
 

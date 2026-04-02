@@ -107,6 +107,10 @@ export default function ManageWardensPage() {
       contact_no: formData.contact_no.trim() || null
     };
 
+    if (!editingWarden && formData.temp_password) {
+      payload.temp_password = formData.temp_password;
+    }
+
     if (editingWarden) {
       updateMutation.mutate({ id: editingWarden.warden_id, data: payload });
     } else {

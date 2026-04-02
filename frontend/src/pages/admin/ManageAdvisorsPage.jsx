@@ -82,6 +82,10 @@ export default function ManageAdvisorsPage() {
       contact_no: form.contact_no.trim() || null
     };
 
+    if (!editingAdvisor && form.temp_password) {
+      payload.temp_password = form.temp_password;
+    }
+
     try {
       if (editingAdvisor) {
         await adminService.updateAdvisor(editingAdvisor.advisor_id, {
@@ -154,9 +158,9 @@ export default function ManageAdvisorsPage() {
                     <td className="p-4 text-on-surface-variant text-sm">{adv.department}</td>
                     <td className="p-4 text-on-surface-variant text-sm">{adv.email}</td>
                     <td className="p-4 text-on-surface-variant text-sm">{adv.contact_no || '—'}</td>
-                    <td className="p-4 text-on-surface-variant text-sm">
-                      {adv.class && adv.class.length > 0
-                        ? adv.class.map((c) => `Yr${c.year} ${c.degree_program} ${c.division}`).join(', ')
+                    <td className="p-4 text-on-surface-variant text-sm text-[12px]">
+                      {adv.classes && adv.classes.length > 0
+                        ? adv.classes.map((c) => `Yr${c.year} ${c.degree_program} ${c.division}`).join(', ')
                         : <span className="text-outline italic">None</span>}
                     </td>
                     <td className="p-4">

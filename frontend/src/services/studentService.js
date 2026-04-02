@@ -28,7 +28,9 @@ export const studentService = {
         degree_program: data.class?.degree_program,
         class_year: data.class?.year,
         division: data.class?.division,
-        advisor_name: data.class?.class_advisor?.name,
+        advisor_id: (Array.isArray(data.class) ? data.class[0] : data.class)?.advisor_id || 
+                    (Array.isArray(data.class) ? data.class[0] : data.class)?.class_advisor?.advisor_id || null,
+        advisor_name: (Array.isArray(data.class) ? data.class[0] : data.class)?.class_advisor?.name,
         year_of_study: aca?.year_of_study,
         cgpa: aca?.cgpa,
         family_annual_income: aca?.family_annual_income,

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BookOpen, Plus, Loader2, Pencil } from 'lucide-react';
+import { BookOpen, Plus, Loader2, Pencil, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminService } from '../../services/adminService';
 import Modal from '../../components/Modal';
@@ -96,6 +96,17 @@ export default function ManageClassesPage() {
     }
   };
 
+  const handleDelete = async (cls) => {
+    if (!window.confirm(`Delete ${cls.degree_program} ${cls.department} Yr${cls.year} ${cls.division}? This cannot be undone.`)) return;
+    try {
+      await adminService.deleteClass(cls.class_id);
+      toast.success('Class deleted.');
+      fetchAll();
+    } catch (err) {
+      toast.error(err?.response?.data?.detail || 'Deletion failed. Class may have students assigned.');
+    }
+  };
+
   const inputClass = "w-full border border-outline-variant rounded-md px-3 py-2 bg-surface text-on-surface focus:outline-none focus:ring-2 focus:ring-primary text-sm";
 
   return (
@@ -127,7 +138,6 @@ export default function ManageClassesPage() {
                   <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Department</th>
                   <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Year</th>
                   <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Division</th>
-                  <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Acad. Year</th>
                   <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Class Advisor</th>
                   <th className="p-4 font-bold text-xs text-on-surface-variant uppercase tracking-widest">Actions</th>
                 </tr>
@@ -139,7 +149,6 @@ export default function ManageClassesPage() {
                     <td className="p-4 text-on-surface-variant text-sm">{cls.department}</td>
                     <td className="p-4 text-on-surface-variant font-bold">Year {cls.year}</td>
                     <td className="p-4 text-on-surface-variant">{cls.division}</td>
-                    <td className="p-4 text-on-surface-variant text-sm">{cls.academic_year}</td>
                     <td className="p-4 text-on-surface-variant">
                       {cls.class_advisor ? (
                         <div className="flex flex-col">
@@ -149,9 +158,14 @@ export default function ManageClassesPage() {
                       ) : <span className="text-outline italic">Unassigned</span>}
                     </td>
                     <td className="p-4">
-                      <button onClick={() => openEdit(cls)} className="p-2 rounded hover:bg-primary/10 text-primary transition-colors" title="Edit">
-                        <Pencil className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => openEdit(cls)} className="p-2 rounded hover:bg-primary/10 text-primary transition-colors" title="Edit">
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDelete(cls)} className="p-2 rounded hover:bg-red-100 text-red-500 transition-colors" title="Delete">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -190,16 +204,12 @@ export default function ManageClassesPage() {
                 placeholder="e.g. A, B" className={inputClass} />
             </div>
             <div>
-              <label className="block text-sm font-medium text-on-surface-variant mb-1">Academic Year *</label>
-              <input name="academic_year" type="number" value={form.academic_year} onChange={handleChange} required className={inputClass} />
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">Assign Class Advisor *</label>
+              <select name="advisor_id" value={form.advisor_id} onChange={handleChange} required className={inputClass}>
+                <option value="">-- Select Advisor --</option>
+                {advisors.map(a => <option key={a.advisor_id} value={a.advisor_id}>{a.name} ({a.department})</option>)}
+              </select>
             </div>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-on-surface-variant mb-1">Assign Class Advisor *</label>
-            <select name="advisor_id" value={form.advisor_id} onChange={handleChange} required className={inputClass}>
-              <option value="">-- Select Advisor --</option>
-              {advisors.map(a => <option key={a.advisor_id} value={a.advisor_id}>{a.name} ({a.department})</option>)}
-            </select>
           </div>
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => setIsModalOpen(false)}

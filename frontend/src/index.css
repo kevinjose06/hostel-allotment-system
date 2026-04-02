@@ -4,81 +4,75 @@
 
 @layer base {
   body {
-    @apply text-on-surface antialiased bg-surface;
-    font-family: 'Public Sans', sans-serif;
+    @apply bg-surface font-sans text-on-surface antialiased;
+  }
+
+  h1, h2, h3, h4, .font-editorial {
+    @apply font-serif;
+  }
+
+  tr {
+    @apply transition-colors hover:bg-surface-container-low;
+  }
+
+  tr:last-child .td {
+    @apply border-b-0;
   }
 }
 
 @layer components {
   .input {
-    @apply w-full px-4 py-3 bg-surface-container-lowest border border-outline-variant/50 rounded-md text-sm text-on-surface 
-           focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary-fixed/30 
-           transition-all duration-200 placeholder:text-on-surface-variant/70 disabled:bg-surface-container-low disabled:cursor-not-allowed;
+    @apply w-full rounded-md border border-outline-variant/50 bg-surface-container-lowest px-4 py-3 text-sm text-on-surface transition-all duration-200;
+    @apply placeholder:text-on-surface-variant/70 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary-fixed/30;
+    @apply disabled:cursor-not-allowed disabled:bg-surface-container-low;
   }
 
   .form-label {
-    @apply block text-xs font-semibold uppercase tracking-wider text-on-surface mb-2;
+    @apply mb-2 block text-xs font-semibold uppercase tracking-wider text-on-surface;
   }
 
   .form-error {
-    @apply text-xs text-error mt-1.5 flex items-center gap-1 font-medium;
+    @apply mt-1.5 flex items-center gap-1 text-xs font-medium text-error;
   }
 
   .btn-primary {
-    @apply bg-primary hover:bg-primary-container text-white py-3 px-6 rounded-md 
-           font-sans font-medium hover:shadow-ambient transition-all duration-200 active:scale-[0.98] 
-           disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2;
+    @apply flex items-center justify-center gap-2 rounded-md bg-primary px-6 py-3 font-sans font-medium text-white transition-all duration-200;
+    @apply hover:bg-primary-container hover:shadow-ambient active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
   }
 
   .btn-secondary {
-    @apply bg-surface-container-highest hover:bg-surface-container text-primary font-medium py-3 px-6 rounded-md 
-           transition-all duration-200 active:scale-[0.98] disabled:opacity-60 
-           disabled:pointer-events-none flex items-center justify-center gap-2;
+    @apply flex items-center justify-center gap-2 rounded-md bg-surface-container-highest px-6 py-3 font-medium text-primary transition-all duration-200;
+    @apply hover:bg-surface-container active:scale-[0.98] disabled:opacity-60;
   }
 
   .btn-ghost {
-    @apply bg-transparent text-primary font-medium py-3 px-6 rounded-md hover:underline decoration-primary/50 underline-offset-4
-           transition-all duration-200 disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2;
+    @apply flex items-center justify-center gap-2 rounded-md bg-transparent px-6 py-3 font-medium text-primary decoration-primary/50 underline-offset-4 transition-all duration-200;
+    @apply hover:underline disabled:pointer-events-none disabled:opacity-60;
   }
 
   .btn-danger {
-    @apply bg-error hover:opacity-90 text-white font-semibold py-3 px-6 rounded-md 
-           transition-all duration-200 active:scale-[0.98] 
-           disabled:opacity-60 disabled:pointer-events-none flex items-center justify-center gap-2;
+    @apply flex items-center justify-center gap-2 rounded-md bg-error px-6 py-3 font-semibold text-white transition-all duration-200;
+    @apply hover:opacity-90 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-60;
   }
 
   .card {
-    @apply bg-surface-container-lowest rounded-md p-8 sm:p-12 shadow-ambient;
+    @apply rounded-md bg-surface-container-lowest p-8 shadow-ambient sm:p-12;
   }
 
-  /* Typography Extends */
-  h1, h2, h3, h4, .font-editorial {
-    font-family: 'Newsreader', serif;
-  }
-
-  /* Table Styles */
   .th {
-    @apply text-left px-5 py-4 text-xs font-semibold text-on-surface-variant uppercase tracking-[0.1em] bg-surface border-b border-surface-container-highest;
+    @apply border-b border-surface-container-highest bg-surface px-5 py-4 text-left text-xs font-semibold uppercase tracking-[0.1em] text-on-surface-variant;
   }
 
   .td {
-    @apply px-5 py-4 text-sm text-on-surface border-b border-surface-container;
-  }
-  
-  tr:last-child .td {
-    @apply border-b-0;
-  }
-  
-  tr {
-    @apply transition-colors hover:bg-surface-container-low;
+    @apply border-b border-surface-container px-5 py-4 text-sm text-on-surface;
   }
 
   .category-tag {
-    @apply text-[11px] font-semibold px-2 py-0.5 rounded-sm mr-1 inline-flex items-center uppercase tracking-wider;
+    @apply mr-1 inline-flex items-center rounded-sm px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wider;
   }
 }
 
-/* Custom Scrollbar for a premium feel */
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -89,5 +83,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-outline-variant rounded-full hover:bg-outline-variant/80 transition-colors;
+  @apply rounded-full bg-outline-variant;
 }
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-outline-variant/80;
+}
+

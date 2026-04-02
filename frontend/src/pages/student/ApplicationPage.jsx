@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
@@ -69,8 +71,11 @@ export default function ApplicationPage() {
     queryFn: () => applicationService.getMyApplication()
   });
 
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm({
+  const isEditing = existing && ['Pending', 'Returned'].includes(existing.status);
+
+  const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
+    shouldUnregister: false,
     defaultValues: { 
       academic_year: currentYear,
       bpl_status: profile?.bpl_status || false,
@@ -79,20 +84,38 @@ export default function ApplicationPage() {
     }
   });
 
+  // Pre-fill form when editing an existing application
+  useEffect(() => {
+    if (isEditing && existing) {
+      reset({
+        academic_year: existing.academic_year,
+        family_annual_income: existing.family_annual_income,
+        distance_from_college: existing.distance_from_college,
+        bpl_status: existing.bpl_status || false,
+        pwd_status: existing.pwd_status || false,
+        sc_st_status: existing.sc_st_status || false,
+        home_address: existing.home_address || '',
+        guardian_name: existing.guardian_name || '',
+        guardian_contact: existing.guardian_contact || '',
+      });
+    }
+  }, [isEditing, existing, reset]);
+
   const pwd_status = watch('pwd_status');
   const bpl_status = watch('bpl_status');
   const sc_st_status = watch('sc_st_status');
 
   if (loadingProfile || loadingApp) return <LoadingSpinner />;
 
-  if (existing && ['Pending', 'Under_Review', 'Approved', 'Waitlisted'].includes(existing.status)) {
+  // Lock the form only when the application is being reviewed or finalised
+  if (existing && ['Under_Review', 'Approved', 'Waitlisted'].includes(existing.status)) {
     return (
       <div className="max-w-2xl mx-auto mt-12 p-8 bg-surface border border-outline-variant/20 rounded-md shadow-ambient text-center">
         <div className="w-16 h-16 bg-surface-container text-primary rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
           ⏳
         </div>
-        <h2 className="font-serif text-2xl text-primary mb-2">Application Already Active</h2>
-        <p className="font-sans text-on-surface-variant mb-8 leading-relaxed">You have an active official hostel application for this academic session. Only one application is permitted per year.</p>
+        <h2 className="font-serif text-2xl text-primary mb-2">Application Under Review</h2>
+        <p className="font-sans text-on-surface-variant mb-8 leading-relaxed">Your application is currently being processed. Changes cannot be made at this stage.</p>
         <button onClick={() => navigate('/student/status')} className="btn-primary w-full sm:w-auto">
           View Application Status
         </button>
@@ -102,21 +125,13 @@ export default function ApplicationPage() {
 
   const onSubmit = async (data) => {
     try {
-      // 1. Simulate Document Upload for each file field detected
-      const documentFields = ['income_certificate', 'residential_certificate', 'pwd_certificate', 'bpl_certificate', 'sc_st_certificate'];
-      let filesUploaded = 0;
-      for (const field of documentFields) {
-        if (data[field] && data[field].length > 0) {
-          filesUploaded++;
-        }
+      if (isEditing) {
+        await applicationService.updateApplication(existing.application_id, data);
+        toast.success('Application updated successfully!');
+      } else {
+        await applicationService.submitApplication(data);
+        toast.success('Your official application has been submitted successfully!');
       }
-      if (filesUploaded > 0) {
-        toast.success(`Successfully uploaded ${filesUploaded} required document(s) in Demo Mode`);
-      }
-
-      // 2. Submit stateless data to backend service
-      await applicationService.submitApplication(data);
-      toast.success('Your official application has been submitted!');
       qc.invalidateQueries(['my-application']);
       navigate('/student/status');
     } catch (err) {
@@ -317,7 +332,10 @@ export default function ApplicationPage() {
             disabled={isSubmitting} 
             className="btn-primary w-full py-5 text-lg font-bold tracking-wider shadow-lg shadow-primary/10 transition-all hover:translate-y-[-2px] disabled:translate-y-0"
           >
-            {isSubmitting ? 'Processing Statutory Submission...' : 'SUBMIT FORM FOR OFFICIAL REVIEW'}
+            {isSubmitting
+              ? (isEditing ? 'Saving Changes...' : 'Processing Statutory Submission...')
+              : (isEditing ? 'SAVE CHANGES' : 'SUBMIT FORM FOR OFFICIAL REVIEW')
+            }
           </button>
         </section>
       </form>

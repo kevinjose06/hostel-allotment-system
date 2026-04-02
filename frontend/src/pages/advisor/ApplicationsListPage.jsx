@@ -18,7 +18,14 @@ export default function ApplicationsListPage({ isAdmin = false }) {
     queryKey: [isAdmin ? 'admin-applications' : 'advisor-applications', statusFilter],
     queryFn: () => api.get(endpoint, {
       params: statusFilter !== 'All' ? { status: statusFilter } : {}
-    }).then(r => isAdmin ? r.data.data?.applications || [] : r.data.data)
+    }).then(r => {
+      const apps = isAdmin ? r.data.data?.applications || [] : r.data.data;
+      // Sanitize standard relation wrapping from PostgREST Arrays
+      return apps.map(app => ({
+        ...app,
+        student: Array.isArray(app.student) ? app.student[0] : app.student
+      }));
+    })
   });
 
   const filtered = rawApps.filter(a =>
@@ -87,16 +94,16 @@ export default function ApplicationsListPage({ isAdmin = false }) {
               {filtered.map((app, i) => (
                 <tr key={app.application_id || i} className="hover:bg-surface-container/30 transition-colors">
                   <td className="td font-serif font-bold text-primary text-base">
-                    {app.student?.first_name} {app.student?.last_name}
+                    {app.student?.first_name} {app.student?.middle_name ? app.student.middle_name + ' ' : ''}{app.student?.last_name}
                   </td>
                   <td className="td font-mono tracking-wide text-on-surface-variant font-medium">{app.student?.college_id}</td>
                   <td className="td hidden md:table-cell text-on-surface-variant uppercase tracking-wider text-[11px] font-semibold">{app.student?.class?.department}</td>
                   <td className="td hidden lg:table-cell">
                     <div className="flex gap-2 flex-wrap">
-                      {app.student?.pwd_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-primary/10 text-primary border border-primary/20">PWD</span>}
-                      {app.student?.bpl_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-secondary/10 text-secondary border border-secondary/20">BPL</span>}
-                      {app.student?.sc_st_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-primary/10 text-primary border border-primary/20">SC/ST</span>}
-                      {!app.student?.pwd_status && !app.student?.bpl_status && !app.student?.sc_st_status &&
+                      {app?.pwd_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-primary/10 text-primary border border-primary/20">PWD</span>}
+                      {app?.bpl_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-secondary/10 text-secondary border border-secondary/20">BPL</span>}
+                      {app?.sc_st_status && <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-primary/10 text-primary border border-primary/20">SC/ST</span>}
+                      {!app?.pwd_status && !app?.bpl_status && !app?.sc_st_status &&
                         <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm bg-surface-container-high text-on-surface-variant border border-outline-variant/30">General</span>}
                     </div>
                   </td>

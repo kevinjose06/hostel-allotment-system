@@ -32,6 +32,10 @@ export const adminService = {
     const response = await api.put(`/admin/class/${classId}`, updates);
     return response.data.data;
   },
+  async deleteClass(classId) {
+    const response = await api.delete(`/admin/class/${classId}`);
+    return response.data;
+  },
 
   // ── Hostels ──────────────────────────────────────────────────────────────────
   async getHostels() {

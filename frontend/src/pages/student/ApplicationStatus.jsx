@@ -50,9 +50,20 @@ export default function ApplicationStatus() {
             <p className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] mb-1.5">Application ID</p>
             <p className="font-mono font-bold text-primary text-xl">#{app.application_id}</p>
           </div>
-          <div className="flex items-center gap-4">
-             <span className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] whitespace-nowrap">Current Status</span>
-             <StatusBadge status={app.status} />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
+            <div className="flex items-center gap-4">
+               <span className="text-xs text-on-surface-variant font-semibold uppercase tracking-[0.1em] whitespace-nowrap">Current Status</span>
+               <StatusBadge status={app.status} />
+            </div>
+            {['Pending', 'Returned'].includes(app.status) && (
+              <Link 
+                to="/student/apply" 
+                className="btn-secondary py-2 px-4 text-xs font-bold border border-outline-variant/30 flex items-center gap-2 hover:bg-surface-container-high transition-colors"
+              >
+                <FileText className="h-4 w-4" />
+                Edit Application
+              </Link>
+            )}
           </div>
         </div>
 
@@ -176,10 +187,10 @@ export default function ApplicationStatus() {
             </div>
           )}
 
-          {app.status === 'Returned' && (
+          {['Pending', 'Returned'].includes(app.status) && (
             <div className="mt-10">
               <Link to="/student/apply" className="block text-center w-full bg-secondary hover:bg-secondary-container text-on-secondary py-4 rounded-md text-sm font-bold uppercase tracking-wider transition-colors border border-secondary">
-                Update & Re-submit Application
+                {app.status === 'Returned' ? 'Update & Re-submit Application' : 'Edit Application'}
               </Link>
             </div>
           )}

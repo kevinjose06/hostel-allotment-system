@@ -5,7 +5,7 @@ import api from '../../services/api';
 import StatusBadge from '../../components/shared/StatusBadge';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import { User, MapPin, IndianRupee, HandHeart, Check, X, RotateCcw } from 'lucide-react';
+import { User, MapPin, IndianRupee, HandHeart, Check, X, RotateCcw, FileText, ExternalLink } from 'lucide-react';
 
 export default function ApplicationDetailPage() {
   const { id } = useParams();
@@ -18,6 +18,12 @@ export default function ApplicationDetailPage() {
   const { data: app, isLoading } = useQuery({
     queryKey: ['application', id],
     queryFn: () => api.get(`/advisor/application/${id}`).then(r => r.data.data)
+  });
+
+  const { data: docs = [], isLoading: docsLoading } = useQuery({
+    queryKey: ['application-docs', id],
+    queryFn: () => api.get(`/advisor/application/${id}/documents`).then(r => r.data.data),
+    enabled: !!id
   });
 
   const mutationOptions = (action) => ({
@@ -37,7 +43,7 @@ export default function ApplicationDetailPage() {
   if (isLoading) return <LoadingSpinner />;
   if (!app) return <div>Application not found</div>;
 
-  const s = app.student;
+  const s = Array.isArray(app.student) ? app.student[0] : app.student;
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -61,7 +67,7 @@ export default function ApplicationDetailPage() {
               {s?.first_name?.[0]}{s?.last_name?.[0]}
             </div>
             <div>
-              <h2 className="text-2xl font-serif text-primary">{s?.first_name} {s?.last_name}</h2>
+              <h2 className="text-2xl font-serif text-primary">{s?.first_name} {s?.middle_name ? s.middle_name + ' ' : ''}{s?.last_name}</h2>
               <div className="flex items-center gap-3 mt-1.5">
                 <span className="px-2 py-0.5 bg-surface-container-high text-on-surface font-mono rounded-sm font-semibold tracking-wider text-[11px]">{s?.college_id}</span>
                 <span className="text-xs text-on-surface-variant uppercase tracking-wider font-semibold">{s?.class?.department}</span>
@@ -88,12 +94,28 @@ export default function ApplicationDetailPage() {
                 <dd className="font-medium text-on-surface text-base">{s?.gender}</dd>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Date of Birth</dt>
+                <dd className="font-medium text-on-surface text-base">{s?.date_of_birth ? new Date(s.date_of_birth).toLocaleDateString() : 'N/A'}</dd>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
                 <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Email</dt>
                 <dd className="font-medium text-on-surface text-base">{s?.email}</dd>
               </div>
               <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
                 <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Phone Number</dt>
                 <dd className="font-medium text-on-surface text-base">{s?.contact_number}</dd>
+              </div>
+              <div className="flex justify-between py-3 border-b border-surface-container-low">
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider min-w-[120px]">Home Address</dt>
+                <dd className="font-medium text-on-surface text-sm text-right leading-relaxed max-w-[200px]">{app?.home_address || 'N/A'}</dd>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Guardian Name</dt>
+                <dd className="font-medium text-on-surface text-base">{app?.guardian_name || 'N/A'}</dd>
+              </div>
+              <div className="flex justify-between items-center py-3 border-b border-surface-container-low">
+                <dt className="text-[11px] text-on-surface-variant font-semibold uppercase tracking-wider">Guardian Contact</dt>
+                <dd className="font-medium text-on-surface text-base">{app?.guardian_contact || 'N/A'}</dd>
               </div>
             </dl>
           </div>
@@ -137,6 +159,56 @@ export default function ApplicationDetailPage() {
               </div>
             </dl>
           </div>
+        </div>
+      </div>
+
+      {/* Documents Card */}
+      <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
+        <div className="bg-surface-container-low px-8 py-5 border-b border-surface-container flex items-center justify-between">
+          <h3 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Submitted Documents</h3>
+          <FileText className="w-4 h-4 text-on-surface-variant/50" />
+        </div>
+        <div className="p-6">
+          {docsLoading ? (
+            <p className="text-sm text-on-surface-variant">Loading documents…</p>
+          ) : docs.length === 0 ? (
+            <p className="text-sm text-on-surface-variant italic">No documents uploaded for this application.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {docs.map((doc) => {
+                const statusColor = doc.verification_status === 'Verified'
+                  ? 'bg-secondary/10 text-secondary border-secondary/20'
+                  : doc.verification_status === 'Rejected'
+                  ? 'bg-error/10 text-error border-error/20'
+                  : 'bg-surface-container-high text-on-surface-variant border-outline-variant/20';
+                return (
+                  <div key={doc.document_id} className="flex items-center justify-between gap-4 bg-surface-container p-4 rounded-sm border border-outline-variant/10">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <FileText className="w-5 h-5 text-primary shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-semibold text-sm text-on-surface truncate">{doc.document_type?.replace(/_/g, ' ')}</p>
+                        <span className={`inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-sm border ${statusColor}`}>
+                          {doc.verification_status}
+                        </span>
+                      </div>
+                    </div>
+                    {doc.signed_url ? (
+                      <a
+                        href={doc.signed_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors"
+                      >
+                        View <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-on-surface-variant">Unavailable</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
