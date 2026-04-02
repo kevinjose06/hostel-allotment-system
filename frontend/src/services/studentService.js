@@ -21,9 +21,15 @@ export const studentService = {
       const cls = Array.isArray(data.class) ? data.class[0] : data.class;
 
       // Map to flattened view format that components expect
+      const firstName = data.first_name || user.user_metadata?.name?.split(' ')[0] || '';
+      const lastName = data.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || '';
+      const fullName = data.full_name || user.user_metadata?.name || `${firstName} ${lastName}`.trim() || 'Student';
+
       return {
         ...data,
-        full_name: `${data.first_name || ''} ${data.middle_name ? data.middle_name + ' ' : ''}${data.last_name || ''}`.trim(),
+        first_name: firstName,
+        last_name: lastName,
+        full_name: fullName,
         department: data.department || cls?.department || 'Not Assigned Yet',
         college_id: data.college_id || 'N/A',
         degree_program: cls?.degree_program,
@@ -43,7 +49,13 @@ export const studentService = {
       if (error.response && error.response.status === 404) {
         // Fallback for newly registered users whose student record is missing
         const { data: { user } } = await supabase.auth.getUser();
-        return { email: user?.email, full_name: user?.user_metadata?.full_name || 'Student' };
+        const authName = user?.user_metadata?.name || 'Student';
+        return { 
+          email: user?.email, 
+          full_name: authName,
+          first_name: authName.split(' ')[0], 
+          last_name: authName.split(' ').slice(1).join(' ') 
+        };
       }
       throw error;
     }

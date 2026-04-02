@@ -47,8 +47,7 @@ async def register_student(body: StudentRegisterRequest):
             "gender": body.gender,
             "date_of_birth": body.date_of_birth,
             "contact_number": body.contact_number,
-            "class_id": body.class_id,
-            "department": body.department
+            "class_id": body.class_id
         }).execute()
 
         if not db_resp.data:

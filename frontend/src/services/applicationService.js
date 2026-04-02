@@ -169,6 +169,8 @@ export const applicationService = {
    */
   async getMyApplication() {
     const student = await studentService.getProfile();
+    if (!student || !student.student_id) return null;
+
     const currentYear = new Date().getFullYear();
 
     const { data, error } = await supabase

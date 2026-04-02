@@ -7,14 +7,26 @@ from app.utils.response import success_response
 router = APIRouter(prefix="/api/v1/student", tags=["Student"])
 
 
-def _get_student_id(user_id: str) -> int:
+def _get_student_id(user_id: str, email: str = None) -> int:
+    # 1. Try by auth_uid
     resp = (
         supabase_admin.table("student")
         .select("student_id")
         .eq("auth_uid", user_id)
-        .single()
+        .maybe_single()
         .execute()
     )
+    
+    # 2. Fallback to Email (Heals broken auth links)
+    if not resp.data and email:
+        resp = (
+            supabase_admin.table("student")
+            .select("student_id")
+            .eq("email", email)
+            .maybe_single()
+            .execute()
+        )
+
     if not resp.data:
         raise HTTPException(status_code=404, detail="Student record not found")
     return resp.data["student_id"]
@@ -23,6 +35,7 @@ def _get_student_id(user_id: str) -> int:
 # ── GET /api/v1/student/profile ──────────────────────────────────────────────
 @router.get("/profile")
 async def get_my_profile(user=Depends(get_current_user)):
+    # 1. Try by auth_uid
     resp = (
         supabase_admin.table("student")
         .select("""
@@ -34,9 +47,27 @@ async def get_my_profile(user=Depends(get_current_user)):
             )
         """)
         .eq("auth_uid", user.id)
-        .single()
+        .maybe_single()
         .execute()
     )
+    
+    # 2. Fallback to Email (Heals broken auth links)
+    if not resp.data:
+        resp = (
+            supabase_admin.table("student")
+            .select("""
+                *,
+                student_academics (*),
+                class (
+                    degree_program, department, year, division, advisor_id,
+                    class_advisor ( advisor_id, name, email, contact_no )
+                )
+            """)
+            .eq("email", user.email)
+            .maybe_single()
+            .execute()
+        )
+
     if not resp.data:
         raise HTTPException(status_code=404, detail="Student not found")
     return success_response("Profile", resp.data)

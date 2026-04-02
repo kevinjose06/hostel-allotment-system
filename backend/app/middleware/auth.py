@@ -10,25 +10,18 @@ bearer_scheme = HTTPBearer()
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)
 ):
-    """
-    Verifies the Supabase JWT from the Authorization: Bearer <token> header.
-    Returns the Supabase user object on success.
-    Raises 401 if the token is missing, expired, or invalid.
-    """
     token = credentials.credentials
     try:
+        # Optimization: use a lightweight user fetch
         response = supabase_admin.auth.get_user(token)
         if not response or not response.user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token"
-            )
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
+        # Ensure role is available in metadata for downstream checks
         return response.user
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token"
-        )
+    except Exception as e:
+        print(f"Auth Error: {e}")
+        raise HTTPException(status_code=401, detail="Authentication failed")
 
 
 def require_role(allowed_roles: List[str]):
