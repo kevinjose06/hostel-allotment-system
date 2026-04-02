@@ -22,7 +22,7 @@ def _get_student_id(user_id: str, email: str = None) -> int:
         resp = (
             supabase_admin.table("student")
             .select("student_id")
-            .eq("email", email)
+            .ilike("email", user.email)
             .maybe_single()
             .execute()
         )

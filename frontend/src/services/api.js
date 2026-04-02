@@ -1,8 +1,15 @@
 import axios from 'axios';
 import { supabase } from '../lib/supabaseClient'; // Pull in Supabase to grab the live token
 
+// Force the base URL to include the versioning prefix
+const rawBaseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const sanitizedBase = rawBaseURL.replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
+const baseURL = `${sanitizedBase}/api/v1`;
+
+console.log("🚀 API Initialized at:", baseURL);
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1',
+  baseURL: baseURL,
   headers: { 'Content-Type': 'application/json' }
 });
 

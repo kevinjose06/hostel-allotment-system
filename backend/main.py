@@ -34,7 +34,9 @@ origins = [
     "http://localhost:3000",
 ]
 if FRONTEND_URL:
-    origins.append(FRONTEND_URL)
+    # Handle the trailing slash issue automatically
+    origins.append(FRONTEND_URL.rstrip('/'))
+    origins.append(FRONTEND_URL.rstrip('/') + '/')
 
 app.add_middleware(
     CORSMiddleware,
@@ -42,6 +44,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # ── Routers ───────────────────────────────────────────────────────────────────
