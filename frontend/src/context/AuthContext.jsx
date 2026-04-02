@@ -11,12 +11,23 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // 1. Check for current session on load
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setUser(session.user);
-        setUserRole(session.user.user_metadata?.role || 'student');
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session) {
+          setUser(session.user);
+          setUserRole(session.user.user_metadata?.role || 'student');
+        }
+      } catch (err) {
+        console.error("Critical Auth Error during initial load:", err.message);
+        // If the session is corrupted/expired, clear it to allow fresh login
+        await supabase.auth.signOut();
+        setUser(null);
+        setUserRole(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getInitialSession();

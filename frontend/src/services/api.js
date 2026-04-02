@@ -15,11 +15,19 @@ const api = axios.create({
 
 // Intercept requests to automatically inject the authentication token
 api.interceptors.request.use(async (config) => {
-  // Wait to get the extremely fresh token from Supabase's local storage engine
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  if (session?.access_token) {
-    config.headers.Authorization = `Bearer ${session.access_token}`;
+  try {
+    // Wait to get the extremely fresh token from Supabase's local storage engine
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) throw error;
+
+    if (session?.access_token) {
+      config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
+  } catch (err) {
+    console.error("Session refresh failed during API request:", err.message);
+    // If getting session fails due to refresh token error, we don't block the request here,
+    // let it fail with 401 and handle it in the response interceptor for a clean redirect.
   }
   
   return config;
@@ -32,11 +40,16 @@ api.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized errors (e.g., redirect to login, clear local storage)
-      console.warn("Unauthorized API call. Token is likely expired.");
-      // Optional: window.location.href = '/login'; 
+      console.warn("Unauthorized API call. Attempting to clear session...");
+      
+      // Clear Supabase session and redirect
+      await supabase.auth.signOut();
+      
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+         window.location.href = '/login?expired=true';
+      }
     }
     return Promise.reject(error);
   }
