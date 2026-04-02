@@ -16,21 +16,21 @@ export const studentService = {
       const response = await api.get('/student/profile');
       const data = response.data.data;
 
-      // Extract raw academics record
+      // Extract academics and class records correctly (Supabase often returns arrays for joins)
       const aca = Array.isArray(data.student_academics) ? data.student_academics[0] : data.student_academics;
+      const cls = Array.isArray(data.class) ? data.class[0] : data.class;
 
       // Map to flattened view format that components expect
       return {
         ...data,
-        full_name: `${data.first_name || ''} ${data.last_name || ''}`.trim(),
-        department: data.department || data.class?.department || 'Not Assigned Yet',
+        full_name: `${data.first_name || ''} ${data.middle_name ? data.middle_name + ' ' : ''}${data.last_name || ''}`.trim(),
+        department: data.department || cls?.department || 'Not Assigned Yet',
         college_id: data.college_id || 'N/A',
-        degree_program: data.class?.degree_program,
-        class_year: data.class?.year,
-        division: data.class?.division,
-        advisor_id: (Array.isArray(data.class) ? data.class[0] : data.class)?.advisor_id || 
-                    (Array.isArray(data.class) ? data.class[0] : data.class)?.class_advisor?.advisor_id || null,
-        advisor_name: (Array.isArray(data.class) ? data.class[0] : data.class)?.class_advisor?.name,
+        degree_program: cls?.degree_program,
+        class_year: cls?.year,
+        division: cls?.division,
+        advisor_id: cls?.advisor_id || cls?.class_advisor?.advisor_id || null,
+        advisor_name: cls?.class_advisor?.name,
         year_of_study: aca?.year_of_study,
         cgpa: aca?.cgpa,
         family_annual_income: aca?.family_annual_income,

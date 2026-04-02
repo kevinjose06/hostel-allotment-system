@@ -39,9 +39,7 @@ async def get_my_applications(
         .select("""
             *,
             student (
-                college_id, first_name, last_name, gender,
-                bpl_status, pwd_status, sc_st_status,
-                family_annual_income, distance_from_college,
+                college_id, first_name, last_name, gender, email, contact_number,
                 class ( degree_program, department, year, division )
             )
         """)
@@ -55,7 +53,23 @@ async def get_my_applications(
         query = query.eq("academic_year", academic_year)
 
     resp = query.execute()
-    return success_response("Applications", resp.data)
+
+    # Patch: if PostgREST silently drops nested student joins, fetch manually
+    apps = resp.data or []
+    missing_ids = [a["student_id"] for a in apps if not a.get("student")]
+    if missing_ids:
+        students_resp = (
+            supabase_admin.table("student")
+            .select("*, class(*)")
+            .in_("student_id", missing_ids)
+            .execute()
+        )
+        student_map = {s["student_id"]: s for s in (students_resp.data or [])}
+        for a in apps:
+            if not a.get("student"):
+                a["student"] = student_map.get(a["student_id"])
+
+    return success_response("Applications", apps)
 
 
 # ── GET /api/v1/advisor/application/{application_id} ───────────────────────
@@ -68,7 +82,7 @@ async def get_application_detail(application_id: int, user=_advisor):
         .select("""
             *,
             student (
-                *, student_academics (*),
+                college_id, first_name, last_name, gender, email, contact_number,
                 class ( degree_program, department, year, division )
             )
         """)
@@ -77,10 +91,13 @@ async def get_application_detail(application_id: int, user=_advisor):
         .single()
         .execute()
     )
-    if not resp.data:
-        raise HTTPException(status_code=404, detail="Application not found")
-
-    return success_response("Application", resp.data)
+    app_data = resp.data
+    if "student" not in app_data or not app_data["student"] or app_data["student"].get("first_name") == "BACKEND":
+        # Force fetch the student directly if PostgREST nested join fails silently
+        s_resp = supabase_admin.table("student").select("*, class(*)").eq("student_id", app_data["student_id"]).single().execute()
+        app_data["student"] = s_resp.data if s_resp.data else None
+    
+    return success_response("Application", app_data)
 
 
 # ── PATCH /api/v1/advisor/application/{application_id}/approve ──────────────
@@ -108,10 +125,23 @@ async def approve_application(
 
     # Fetch student email for notification
     app_data = resp.data[0]
+    student_id = app_data["student_id"]
+    
+    # NEW: Update all documents to 'Verified' when application is approved
+    try:
+        from datetime import datetime
+        supabase_admin.table("student_document").update({
+            "verification_status": "Verified",
+            "verified_by": advisor_id,
+            "verified_at": datetime.utcnow().isoformat()
+        }).eq("student_id", student_id).execute()
+    except Exception as e:
+        print(f"Error updating doc status: {e}")
+
     student_resp = (
         supabase_admin.table("student")
         .select("email, first_name")
-        .eq("student_id", app_data["student_id"])
+        .eq("student_id", student_id)
         .single()
         .execute()
     )
@@ -149,10 +179,24 @@ async def reject_application(
         raise HTTPException(status_code=404, detail="Application not found or not yours")
 
     app_data = resp.data[0]
+    student_id = app_data["student_id"]
+
+    # Update docs to 'Rejected'
+    try:
+        from datetime import datetime
+        supabase_admin.table("student_document").update({
+            "verification_status": "Rejected",
+            "verified_by": advisor_id,
+            "verified_at": datetime.utcnow().isoformat(),
+            "remarks": body.remarks
+        }).eq("student_id", student_id).execute()
+    except Exception as e:
+        print(f"Error updating doc status: {e}")
+
     student_resp = (
         supabase_admin.table("student")
         .select("email, first_name")
-        .eq("student_id", app_data["student_id"])
+        .eq("student_id", student_id)
         .single()
         .execute()
     )
@@ -196,10 +240,24 @@ async def return_application(
         raise HTTPException(status_code=404, detail="Application not found or not yours")
 
     app_data = resp.data[0]
+    student_id = app_data["student_id"]
+
+    # Update documents to 'Rejected' (to prompt student correction)
+    try:
+        from datetime import datetime
+        supabase_admin.table("student_document").update({
+            "verification_status": "Rejected",
+            "verified_by": advisor_id,
+            "verified_at": datetime.utcnow().isoformat(),
+            "remarks": body.remarks
+        }).eq("student_id", student_id).execute()
+    except Exception as e:
+        print(f"Error updating doc status: {e}")
+
     student_resp = (
         supabase_admin.table("student")
         .select("email, first_name")
-        .eq("student_id", app_data["student_id"])
+        .eq("student_id", student_id)
         .single()
         .execute()
     )
@@ -228,10 +286,27 @@ async def get_application_documents(application_id: int, user=_advisor):
     if not app_resp.data:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    docs = (
+    docs_resp = (
         supabase_admin.table("student_document")
         .select("*")
         .eq("student_id", app_resp.data["student_id"])
         .execute()
     )
-    return success_response("Documents", docs.data)
+
+    # Enrich each document with a 1-hour signed URL
+    enriched = []
+    for doc in (docs_resp.data or []):
+        try:
+            res = supabase_admin.storage.from_("student-documents").create_signed_url(
+                doc["file_path"], 3600
+            )
+            # Handle different SDK return formats (dict with signedURL/signedUrl or direct string)
+            if isinstance(res, dict):
+                doc["signed_url"] = res.get("signedURL") or res.get("signedUrl")
+            else:
+                doc["signed_url"] = str(res)
+        except Exception:
+            doc["signed_url"] = None
+        enriched.append(doc)
+
+    return success_response("Documents", enriched)

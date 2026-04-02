@@ -62,13 +62,20 @@ async def create_advisor(body: CreateAdvisorRequest, user=_admin):
 # ── GET /api/v1/admin/advisors ───────────────────────────────────────────────
 @router.get("/advisors")
 async def get_all_advisors(user=_admin):
-    resp = (
-        supabase_admin.table("class_advisor")
-        .select("*, class(class_id, degree_program, department, year, division)")
-        .order("name")
-        .execute()
-    )
-    return success_response("Advisors", resp.data)
+    # Fetch advisors
+    adv_resp = supabase_admin.table("class_advisor").select("*").order("name").execute()
+    advisors_list = adv_resp.data if adv_resp.data else []
+
+    # Fetch all classes
+    cls_resp = supabase_admin.table("class").select("class_id, degree_program, department, year, division, advisor_id").execute()
+    classes_list = cls_resp.data if cls_resp.data else []
+
+    # Map classes to advisors
+    for adv in advisors_list:
+        adv_classes = [c for c in classes_list if c.get("advisor_id") == adv.get("advisor_id")]
+        adv["classes"] = adv_classes
+
+    return success_response("Advisors", advisors_list)
 
 
 # ── PUT /api/v1/admin/advisor/{advisor_id} ───────────────────────────────────
@@ -132,6 +139,18 @@ async def update_class(class_id: int, body: dict, user=_admin):
         .execute()
     )
     return success_response("Class updated", resp.data[0] if resp.data else None)
+
+
+# ── DELETE /api/v1/admin/class/{class_id} ───────────────────────────────────
+@router.delete("/class/{class_id}")
+async def delete_class(class_id: int, user=_admin):
+    resp = (
+        supabase_admin.table("class")
+        .delete()
+        .eq("class_id", class_id)
+        .execute()
+    )
+    return success_response("Class deleted")
 
 
 # ── POST /api/v1/admin/hostel ────────────────────────────────────────────────

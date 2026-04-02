@@ -28,7 +28,7 @@ export const authService = {
       options: {
         data: {
           role: 'student',
-          full_name: `${first_name} ${last_name}`
+          full_name: `${first_name} ${middle_name ? middle_name + ' ' : ''}${last_name}`.trim()
         }
       }
     });
@@ -51,6 +51,7 @@ export const authService = {
         contact_number,
         email,
         class_id: class_id || null,
+        department: department || null,
         auth_uid: user.id
       });
 

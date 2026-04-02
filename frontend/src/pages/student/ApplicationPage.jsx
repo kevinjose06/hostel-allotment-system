@@ -149,6 +149,21 @@ export default function ApplicationPage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+        {/* Remark Alert if Returned */}
+        {existing?.status === 'Returned' && (
+          <div className="bg-error/5 border border-error/20 p-6 rounded-md flex items-start gap-4 shadow-sm animate-pulse-subtle">
+            <div className="w-10 h-10 bg-error/10 text-error rounded-full flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div className="space-y-1.5 flex-1 pt-0.5">
+              <h4 className="text-sm font-bold text-error uppercase tracking-widest">Correction Required from Class Advisor</h4>
+              <p className="text-on-surface font-sans text-base leading-relaxed italic border-l-2 border-error/20 pl-4 py-1 mt-3">
+                "{existing.remarks || "Please review your application and resubmit with correct details."}"
+              </p>
+              <p className="text-xs text-on-surface-variant font-medium mt-3">Update the requested data below and click <span className="font-bold">Save Changes</span> to resubmit.</p>
+            </div>
+          </div>
+        )}
         {/* 1. Applicant Profile Summary (Read-Only) */}
         <section className="bg-surface-container-low border border-surface-container rounded-md overflow-hidden">
           <div className="px-6 py-4 bg-surface-container-high flex items-center gap-3 border-b border-surface-container">

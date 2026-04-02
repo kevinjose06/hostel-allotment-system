@@ -19,6 +19,7 @@ class StudentRegisterRequest(BaseModel):
     bpl_status: bool = False
     pwd_status: bool = False
     sc_st_status: bool = False
+    department: Optional[str] = None
 
 
 class LoginRequest(BaseModel):

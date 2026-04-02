@@ -38,36 +38,53 @@ async def submit_application(
         .maybe_single()
         .execute()
     )
-    if existing.data:
+    if existing and existing.data:
         raise HTTPException(
             status_code=409,
             detail="Application already submitted for this academic year"
         )
 
-    # 1. Fetch current profile to create the application snapshot
-    academics = (
-        supabase_admin.table("student_academics")
-        .select("family_annual_income, distance_from_college, bpl_status, pwd_status, sc_st_status")
+    # 1. Fetch current profile snapshot for advisor_id
+    student_info = (
+        supabase_admin.table("student")
+        .select("class_id, class(advisor_id)")
         .eq("student_id", student_id)
         .single()
         .execute()
     )
-    if not academics.data:
-        raise HTTPException(status_code=400, detail="Student profile (academics) not found. Please complete profile first.")
+    
+    # Safely extract advisor_id
+    cls_data = student_info.data.get("class", {})
+    if isinstance(cls_data, list) and len(cls_data) > 0:
+        cls_data = cls_data[0]
+    
+    advisor_id = cls_data.get("advisor_id")
+    if not advisor_id:
+         raise HTTPException(status_code=400, detail="No advisor assigned to your class. Please contact Admin.")
 
-    prof = academics.data
+    # 2. Calculate merit score (identical logic to frontend)
+    # Income points: 50 - (income / 100000) * 5
+    # Distance points: (distance / 500) * 50
+    income_pts = max(0, 50 - (body.family_annual_income / 100000) * 5)
+    dist_pts = min(50, (body.distance_from_college / 500) * 50)
+    merit_score = round(income_pts + dist_pts, 2)
 
-    # 2. Insert Application with snapshot values
+    # 3. Insert Application
     resp = (
         supabase_admin.table("application")
         .insert({
             "student_id": student_id,
+            "advisor_id": advisor_id,
             "academic_year": body.academic_year,
-            "family_annual_income": prof["family_annual_income"],
-            "distance_from_college": prof["distance_from_college"],
-            "bpl_status": prof["bpl_status"],
-            "pwd_status": prof["pwd_status"],
-            "sc_st_status": prof["sc_st_status"],
+            "family_annual_income": body.family_annual_income,
+            "distance_from_college": body.distance_from_college,
+            "bpl_status": body.bpl_status,
+            "pwd_status": body.pwd_status,
+            "sc_st_status": body.sc_st_status,
+            "home_address": body.home_address,
+            "guardian_name": body.guardian_name,
+            "guardian_contact": body.guardian_contact,
+            "merit_score": merit_score,
             "status": "Pending"
         })
         .execute()
@@ -112,23 +129,39 @@ async def resubmit_application(
 ):
     student_id = _get_student_id(user.id)
 
+    # Re-calculate merit score
+    income_pts = max(0, 50 - (body.family_annual_income / 100000) * 5)
+    dist_pts = min(50, (body.distance_from_college / 500) * 50)
+    merit_score = round(income_pts + dist_pts, 2)
+
+    updates = {
+        "family_annual_income": body.family_annual_income,
+        "distance_from_college": body.distance_from_college,
+        "merit_score": merit_score,
+        "status": "Pending",
+        "remarks": None
+    }
+    
+    # Add other fields if provided (exclude_none already handles this in most cases but we map explicitly for safety)
+    if body.home_address: updates["home_address"] = body.home_address
+    if body.guardian_name: updates["guardian_name"] = body.guardian_name
+    if body.guardian_contact: updates["guardian_contact"] = body.guardian_contact
+    if body.bpl_status is not None: updates["bpl_status"] = body.bpl_status
+    if body.pwd_status is not None: updates["pwd_status"] = body.pwd_status
+    if body.sc_st_status is not None: updates["sc_st_status"] = body.sc_st_status
+
     resp = (
         supabase_admin.table("application")
-        .update({
-            "family_annual_income": body.family_annual_income,
-            "distance_from_college": body.distance_from_college,
-            "status": "Pending",
-            "remarks": None
-        })
+        .update(updates)
         .eq("student_id", student_id)
         .eq("academic_year", body.academic_year)
-        .eq("status", "Returned")
+        .in_("status", ["Pending", "Returned"]) # Allow editing both
         .execute()
     )
     if not resp.data:
         raise HTTPException(
             status_code=404,
-            detail="No returned application found for this year"
+            detail="No application found to update"
         )
     return success_response("Application resubmitted", resp.data[0])
 

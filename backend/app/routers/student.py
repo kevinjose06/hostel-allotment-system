@@ -29,8 +29,8 @@ async def get_my_profile(user=Depends(get_current_user)):
             *,
             student_academics (*),
             class (
-                degree_program, department, year, division,
-                class_advisor ( name, email, contact_no )
+                degree_program, department, year, division, advisor_id,
+                class_advisor ( advisor_id, name, email, contact_no )
             )
         """)
         .eq("auth_uid", user.id)

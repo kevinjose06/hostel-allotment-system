@@ -212,6 +212,21 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
+      {/* Current Remarks Display */}
+      {app.remarks && (
+        <div className="bg-surface-container-low border border-surface-container rounded-md p-8 md:p-10 flex gap-6 items-start">
+          <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center shrink-0">
+            <FileText className="w-5 h-5" />
+          </div>
+          <div className="flex-1 space-y-2">
+            <h4 className="text-xs font-bold text-primary uppercase tracking-widest">Historical Review Remarks</h4>
+            <p className="text-on-surface font-sans text-base leading-relaxed italic border-l-2 border-primary/20 pl-4 py-1">
+              "{app.remarks}"
+            </p>
+          </div>
+        </div>
+      )}
+
       {app.status === 'Pending' && (
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
@@ -257,7 +272,7 @@ export default function ApplicationDetailPage() {
                   disabled={!remarks.trim()}
                   onClick={() => showRejectForm ? rejectMutation.mutate() : returnMutation.mutate()}
                   className={`flex-1 py-4 text-white rounded-md font-bold uppercase tracking-widest text-xs transition-all shadow-sm ${
-                    showRejectForm ? 'bg-error hover:bg-error/90 disabled:bg-error/50' : 'bg-surface-container-highest text-on-surface hover:bg-outline-variant/30 border border-outline-variant/30 disabled:opacity-50'
+                    showRejectForm ? 'bg-error hover:bg-error/90 disabled:bg-error/50' : 'bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300'
                   }`}
                 >
                   Confirm {showRejectForm ? 'Rejection' : 'Return'}
