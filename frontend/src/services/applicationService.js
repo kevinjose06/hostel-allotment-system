@@ -71,6 +71,15 @@ export const applicationService = {
       }
     }
 
+    // Map dynamic certificates if any
+    const dynamicCerts = applicationData.dynamic_certificates || {};
+    for (const [code, file] of Object.entries(dynamicCerts)) {
+      if (file) {
+        const result = await this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file);
+        uploadedDocs.push({ ...result, docType: `Category_${code}` });
+      }
+    }
+
     // 2. Submit via Backend API
     const response = await api.post('/application', {
       academic_year: applicationData.academic_year,
@@ -82,6 +91,7 @@ export const applicationService = {
       home_address: applicationData.home_address,
       guardian_name: applicationData.guardian_name,
       guardian_contact: applicationData.guardian_contact,
+      selected_category_ids: applicationData.selected_category_ids || []
     });
 
     // 3. Save document metadata into student_document table (Internal Upsert)
@@ -104,6 +114,7 @@ export const applicationService = {
       bpl_status: applicationData.bpl_status || false,
       pwd_status: applicationData.pwd_status || false,
       sc_st_status: applicationData.sc_st_status || false,
+      selected_category_ids: applicationData.selected_category_ids || []
     }, { onConflict: 'student_id' });
 
     return response.data.data;
@@ -138,17 +149,16 @@ export const applicationService = {
       }
     }
 
-    // 2. Update metadata in DB
-    if (uploadedDocs.length > 0) {
-      const docRows = uploadedDocs.map(d => ({
-        student_id: student.student_id,
-        document_type: d.docType,
-        file_path: d.path,
-        verification_status: 'Pending',
-      }));
-      await supabase.from('student_document').upsert(docRows, { onConflict: 'student_id,document_type' });
+    // Map dynamic certificates if any
+    const dynamicCerts = applicationData.dynamic_certificates || {};
+    for (const [code, file] of Object.entries(dynamicCerts)) {
+      if (file) {
+        const result = await this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file);
+        uploadedDocs.push({ ...result, docType: `Category_${code}` });
+      }
     }
 
+    // 2. Update via Backend API
     const response = await api.put('/application/my', {
       academic_year: applicationData.academic_year,
       family_annual_income: applicationData.family_annual_income,
@@ -159,6 +169,7 @@ export const applicationService = {
       home_address: applicationData.home_address,
       guardian_name: applicationData.guardian_name,
       guardian_contact: applicationData.guardian_contact,
+      selected_category_ids: applicationData.selected_category_ids || []
     });
 
     return response.data.data;
@@ -168,20 +179,13 @@ export const applicationService = {
    * Retrieves the current student's application for the current academic year
    */
   async getMyApplication() {
-    const student = await studentService.getProfile();
-    if (!student || !student.student_id) return null;
-
-    const currentYear = new Date().getFullYear();
-
-    const { data, error } = await supabase
-      .from('application')
-      .select('*')
-      .eq('student_id', student.student_id)
-      .eq('academic_year', currentYear)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data;
+    try {
+      const response = await api.get('/application/my');
+      return response.data.data;
+    } catch (err) {
+      if (err.response?.status === 404) return null;
+      throw err;
+    }
   },
 
   /**

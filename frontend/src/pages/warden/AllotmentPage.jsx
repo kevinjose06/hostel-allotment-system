@@ -1,36 +1,35 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import { Sparkles, CheckCircle2, Users, AlertTriangle } from 'lucide-react';
 
-// Generate academic year options like "2024-2025", "2025-2026", "2026-2027"
-const generateAcademicYears = () => {
-  const currentYear = new Date().getFullYear();
-  return [currentYear - 1, currentYear, currentYear + 1].map(y => ({
-    label: `${y}–${y + 1}`,
-    value: y
-  }));
-};
 
 export default function AllotmentPage() {
-  const academicYears = generateAcademicYears();
+  const [academicYear, setAcademicYear] = useState('');
   const [selectedHostel, setSelectedHostel] = useState('');
-  const [academicYear, setAcademicYear] = useState(new Date().getFullYear());
   const [result, setResult] = useState(null);
-  const qc = useQueryClient();
 
-  // Fetch the warden's own profile to pre-fill their hostel
+  const { data: configs } = useQuery({
+    queryKey: ['system-configs'],
+    queryFn: () => api.get('/admin/config').then(r => r.data.data)
+  });
+
   const { data: wardenProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['warden-me'],
-    queryFn: () => api.get('/admin/warden/me').then(r => r.data.data),
-    onSuccess: (data) => {
-      if (data?.hostel_id) {
-        setSelectedHostel(String(data.hostel_id));
-      }
-    }
+    queryFn: () => api.get('/admin/warden/me').then(r => r.data.data)
   });
+
+  // Sync state with query data (React Query v5 doesn't support onSuccess in useQuery)
+  useEffect(() => {
+    if (configs?.academic_year) {
+      setAcademicYear(configs.academic_year);
+    }
+    if (wardenProfile?.hostel_id) {
+      setSelectedHostel(String(wardenProfile.hostel_id));
+    }
+  }, [configs, wardenProfile]);
 
   // Fetch all hostels for the dropdown (warden may cover multiple or admin view)
   const { data: hostels = [], isLoading: isHostelsLoading } = useQuery({
@@ -41,7 +40,7 @@ export default function AllotmentPage() {
   const allotmentMutation = useMutation({
     mutationFn: () => api.post('/allotment/run', {
       hostel_id: parseInt(selectedHostel),
-      academic_year: parseInt(academicYear)
+      academic_year: academicYear
     }),
     onSuccess: (res) => {
       setResult(res.data.data);
@@ -104,22 +103,19 @@ export default function AllotmentPage() {
             )}
           </div>
 
-          {/* Academic Year Selector */}
+          {/* Academic Session (Locked by Admin) */}
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-widest text-primary mb-3">
-              Academic Year <span className="text-error">*</span>
+              Active Academic Session
             </label>
-            <select
-              value={academicYear}
-              onChange={e => setAcademicYear(Number(e.target.value))}
-              className="input py-3 text-sm w-full sm:w-64"
-            >
-              {academicYears.map(y => (
-                <option key={y.value} value={y.value}>{y.label}</option>
-              ))}
-            </select>
+            <div className="flex items-center gap-3 p-4 bg-surface-container-high/50 border border-outline-variant/10 rounded-md">
+              <Sparkles className="h-4 w-4 text-primary" />
+              <p className="font-serif font-bold text-primary text-xl">
+                 {academicYear || 'Loading session...'}
+              </p>
+            </div>
             <p className="text-[11px] text-on-surface-variant/60 mt-2 italic">
-              Select the academic year this allotment applies to.
+              Automatically set from global system configuration.
             </p>
           </div>
 
@@ -166,7 +162,7 @@ export default function AllotmentPage() {
               </div>
               <div className="bg-surface-container-low p-5 rounded-sm border border-surface-container">
                 <span className="text-on-surface-variant font-bold block uppercase tracking-widest text-[10px] mb-2">Year</span>
-                <strong className="text-primary font-serif text-xl">{result.academic_year}–{result.academic_year + 1}</strong>
+                <strong className="text-primary font-serif text-xl">{result.academic_year}</strong>
               </div>
               <div className="bg-surface-container-low p-5 rounded-sm border border-surface-container">
                 <span className="text-on-surface-variant font-bold block uppercase tracking-widest text-[10px] mb-2">Total Allotted</span>

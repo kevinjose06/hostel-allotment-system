@@ -13,7 +13,7 @@ import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import { User, Home, ShieldAlert, FileCheck, UploadCloud } from 'lucide-react';
 
 const schema = z.object({
-  academic_year:         z.coerce.number().int().min(2020).max(2035),
+  academic_year:         z.string().min(4, 'Academic Year is required'),
   family_annual_income:  z.coerce.number().min(1, 'Please enter a valid income amount'),
   distance_from_college: z.coerce.number().min(0.1, 'Please enter a valid distance'),
   bpl_status:            z.boolean().default(false),
@@ -30,6 +30,8 @@ const schema = z.object({
   pwd_certificate:       z.any().optional(),
   bpl_certificate:       z.any().optional(),
   sc_st_certificate:     z.any().optional(),
+  selected_category_ids: z.array(z.number()).default([]),
+  dynamic_certificates:  z.record(z.any()).optional(),
 }).superRefine((data, ctx) => {
   if (data.pwd_status && (!data.pwd_certificate || data.pwd_certificate.length === 0)) {
     ctx.addIssue({
@@ -71,13 +73,25 @@ export default function ApplicationPage() {
     queryFn: () => applicationService.getMyApplication()
   });
 
+  const { data: categories = [] } = useQuery({
+    queryKey: ['reservation-categories'],
+    queryFn: () => api.get('/admin/reservation-categories').then(r => r.data.data)
+  });
+
+  const { data: configs } = useQuery({
+    queryKey: ['system-configs'],
+    queryFn: () => api.get('/admin/config').then(r => r.data.data)
+  });
+
+  const activeCategories = categories.filter(c => c.is_active);
+
   const isEditing = existing && ['Pending', 'Returned'].includes(existing.status);
 
   const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm({
     resolver: zodResolver(schema),
     shouldUnregister: false,
     defaultValues: { 
-      academic_year: currentYear,
+      academic_year: configs?.academic_year || `${currentYear}-${currentYear+1}`,
       bpl_status: profile?.bpl_status || false,
       pwd_status: profile?.pwd_status || false,
       sc_st_status: profile?.sc_st_status || false
@@ -104,8 +118,30 @@ export default function ApplicationPage() {
   const pwd_status = watch('pwd_status');
   const bpl_status = watch('bpl_status');
   const sc_st_status = watch('sc_st_status');
+  const selected_category_ids = watch('selected_category_ids') || [];
 
   if (loadingProfile || loadingApp) return <LoadingSpinner />;
+
+  const isRegistrationClosed = configs?.application_deadline && new Date() > new Date(configs.application_deadline);
+
+  // If deadline passed, block NEW applications (Allow 'Returned' for correction)
+  if (isRegistrationClosed && (!existing || existing.status !== 'Returned')) {
+    return (
+      <div className="max-w-2xl mx-auto mt-12 p-12 bg-surface-container-lowest border border-outline-variant/20 rounded-md shadow-ambient text-center">
+        <div className="w-20 h-20 bg-secondary/10 text-secondary rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+          🔒
+        </div>
+        <h2 className="font-serif text-3xl text-primary mb-3">Registration Closed</h2>
+        <p className="font-sans text-on-surface-variant mb-4 leading-relaxed">
+          The official submission window for the <span className="font-bold text-primary">{configs?.academic_year}</span> session ended on <span className="font-bold">{new Date(configs.application_deadline).toLocaleDateString()}</span>.
+        </p>
+        <p className="text-sm text-on-surface-variant/70 mb-8">If you believe this is an error, please contact the Hostel Office.</p>
+        <button onClick={() => navigate('/student/dashboard')} className="btn-secondary px-8">
+          Return to Dashboard
+        </button>
+      </div>
+    );
+  }
 
   // Lock the form only when the application is being reviewed or finalised
   if (existing && ['Under_Review', 'Approved', 'Waitlisted'].includes(existing.status)) {
@@ -144,7 +180,7 @@ export default function ApplicationPage() {
       <div className="space-y-3">
         <h1 className="font-serif text-4xl lg:text-5xl text-primary tracking-tight">Hostel Allotment Form</h1>
         <p className="font-sans text-on-surface-variant text-lg max-w-2xl leading-relaxed">
-          Statutory application for Academic Year {currentYear}–{currentYear+1}.
+          Statutory application for Academic Year {configs?.academic_year || 'Loading...'}.
         </p>
       </div>
 
@@ -212,21 +248,54 @@ export default function ApplicationPage() {
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-surface-container/50">
+            <div className="space-y-6 pt-4 border-t border-surface-container/50">
               <label className="form-label mb-4">Reservation Attributes</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
-                  <input {...register('pwd_status')} type="checkbox" className="w-5 h-5 accent-primary" />
-                  <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">PWD Status</span>
-                </label>
-                <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-secondary transition-all group">
-                  <input {...register('bpl_status')} type="checkbox" className="w-5 h-5 accent-secondary" />
-                  <span className="text-sm font-semibold text-on-surface group-hover:text-secondary transition-colors">BPL Status</span>
-                </label>
-                <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
-                  <input {...register('sc_st_status')} type="checkbox" className="w-5 h-5 accent-primary" />
-                  <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">SC/ST status</span>
-                </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {activeCategories.map(cat => (
+                  <label key={cat.id} className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
+                    <input 
+                      type="checkbox" 
+                      value={cat.id}
+                      checked={selected_category_ids.includes(cat.id)}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        const current = [...selected_category_ids];
+                        if (e.target.checked) {
+                          if (!current.includes(val)) current.push(val);
+                        } else {
+                          const idx = current.indexOf(val);
+                          if (idx > -1) current.splice(idx, 1);
+                        }
+                        reset({ ...watch(), selected_category_ids: current });
+                      }}
+                      className="w-5 h-5 accent-primary" 
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors block">{cat.name}</span>
+                      <span className="text-[10px] font-bold text-on-surface-variant/50 uppercase tracking-widest">{cat.code}</span>
+                    </div>
+                  </label>
+                ))}
+
+                {/* Legacy Columns (Optional UI fallback) */}
+                {!activeCategories.some(c => c.code === 'PWD') && (
+                  <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
+                    <input {...register('pwd_status')} type="checkbox" className="w-5 h-5 accent-primary" />
+                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">PWD Status</span>
+                  </label>
+                )}
+                {!activeCategories.some(c => c.code === 'BPL') && (
+                  <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-secondary transition-all group">
+                    <input {...register('bpl_status')} type="checkbox" className="w-5 h-5 accent-secondary" />
+                    <span className="text-sm font-semibold text-on-surface group-hover:text-secondary transition-colors">BPL Status</span>
+                  </label>
+                )}
+                {!activeCategories.some(c => c.code === 'SCST') && (
+                   <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
+                    <input {...register('sc_st_status')} type="checkbox" className="w-5 h-5 accent-primary" />
+                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">SC/ST status</span>
+                  </label>
+                )}
               </div>
             </div>
           </div>
@@ -252,25 +321,41 @@ export default function ApplicationPage() {
               </div>
             </div>
 
-            {(pwd_status || bpl_status || sc_st_status) && (
+            {(pwd_status || bpl_status || sc_st_status || selected_category_ids.length > 0) && (
               <div className="space-y-4 pt-4 border-t border-surface-container/50">
                 <label className="form-label mb-4">Reservation Verification Documents</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {pwd_status && (
+                  {/* Dynamic Category Documents */}
+                  {activeCategories.filter(c => selected_category_ids.includes(c.id) && c.requires_doc).map(cat => (
+                    <div key={cat.id}>
+                      <label className="form-label">{cat.name} Certificate <span className="text-error">*</span></label>
+                      <input 
+                        type="file" 
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          const current = watch('dynamic_certificates') || {};
+                          reset({ ...watch(), dynamic_certificates: { ...current, [cat.code]: file } });
+                        }}
+                        className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" 
+                      />
+                    </div>
+                  ))}
+                  
+                  {pwd_status && !activeCategories.some(c => c.code === 'PWD' && selected_category_ids.includes(c.id)) && (
                     <div>
                       <label className="form-label">PWD Verification Certificate <span className="text-error">*</span></label>
                       <input {...register('pwd_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                       {errors.pwd_certificate && <p className="form-error">{errors.pwd_certificate.message}</p>}
                     </div>
                   )}
-                  {bpl_status && (
+                  {bpl_status && !activeCategories.some(c => c.code === 'BPL' && selected_category_ids.includes(c.id)) && (
                     <div>
                       <label className="form-label">BPL Verification Certificate <span className="text-error">*</span></label>
                       <input {...register('bpl_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                       {errors.bpl_certificate && <p className="form-error">{errors.bpl_certificate.message}</p>}
                     </div>
                   )}
-                  {sc_st_status && (
+                  {sc_st_status && !activeCategories.some(c => c.code === 'SCST' && selected_category_ids.includes(c.id)) && (
                     <div>
                       <label className="form-label">SC/ST Verification Certificate <span className="text-error">*</span></label>
                       <input {...register('sc_st_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />

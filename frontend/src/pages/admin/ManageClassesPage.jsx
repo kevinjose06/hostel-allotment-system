@@ -16,7 +16,7 @@ const emptyForm = {
   year: 1,
   division: 'A',
   advisor_id: '',
-  academic_year: new Date().getFullYear()
+  academic_year: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`
 };
 
 export default function ManageClassesPage() {
@@ -77,7 +77,7 @@ export default function ManageClassesPage() {
       ...form,
       year: parseInt(form.year),
       advisor_id: parseInt(form.advisor_id),
-      academic_year: parseInt(form.academic_year)
+      academic_year: form.academic_year
     };
     try {
       if (editingClass) {
@@ -202,6 +202,11 @@ export default function ManageClassesPage() {
               <label className="block text-sm font-medium text-on-surface-variant mb-1">Division *</label>
               <input name="division" value={form.division} onChange={handleChange} required maxLength={5}
                 placeholder="e.g. A, B" className={inputClass} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-on-surface-variant mb-1">Academic Year *</label>
+              <input name="academic_year" value={form.academic_year} onChange={handleChange} required
+                placeholder="e.g. 2024-2025" className={inputClass} />
             </div>
             <div>
               <label className="block text-sm font-medium text-on-surface-variant mb-1">Assign Class Advisor *</label>

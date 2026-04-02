@@ -55,13 +55,13 @@ def _category_sort_key(app: Dict) -> tuple:
     return (priority, -app["merit_score"])
 
 
-async def run_hostel_allotment(hostel_id: int, academic_year: int) -> Dict:
+async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     """
     Main entry point called by the allotment route.
     Returns a summary dict.
     """
 
-    # ── 1. Fetch hostel configuration ────────────────────────────────────────
+    # ── 1. Fetch hostel and system configuration ─────────────────────────────
     hostel_resp = (
         supabase_admin.table("hostel")
         .select("hostel_id, hostel_name, hostel_type, total_capacity, reserved_seats")
@@ -72,10 +72,30 @@ async def run_hostel_allotment(hostel_id: int, academic_year: int) -> Dict:
     if not hostel_resp.data:
         raise ValueError(f"Hostel {hostel_id} not found")
 
+    # Fetch global reservation percentage
+    config_resp = (
+        supabase_admin.table("system_config")
+        .select("config_value")
+        .eq("config_key", "reservation_percentage")
+        .maybe_single()
+        .execute()
+    )
+    
+    res_percent = 20 # Default fallback
+    if config_resp.data:
+        try:
+            res_percent = int(config_resp.data["config_value"])
+        except:
+            pass
+
     hostel         = hostel_resp.data
     hostel_type    = hostel["hostel_type"]          # 'LH' or 'MH'
     total_capacity = hostel["total_capacity"]
-    reserved_seats = hostel["reserved_seats"]
+    
+    # Dynamically calculate reserved seats based on global percentage
+    import math
+    reserved_seats = math.floor(total_capacity * (res_percent / 100))
+    
     gender_filter  = "Female" if hostel_type == "LH" else "Male"
 
     # ── 2. Fetch all approved applications for the correct gender ────────────
@@ -141,23 +161,36 @@ async def run_hostel_allotment(hostel_id: int, academic_year: int) -> Dict:
     today_str          = str(date.today())
 
     # ── 5. PHASE 1 — Reserved seat allocation ────────────────────────────────
+    # Fetch all active reservation category IDs
+    cat_resp = (
+        supabase_admin.table("benefit_category")
+        .select("id")
+        .eq("is_active", True)
+        .execute()
+    )
+    active_cat_ids = [c["id"] for c in cat_resp.data] if cat_resp.data else []
+
+    # Identify candidates with AT LEAST ONE active reservation category
     reserved_candidates = [
         a for a in unallotted
-        if (
-            a["pwd_status"] or
-            a["bpl_status"] or
-            a["sc_st_status"]
-        )
+        if any(cat_id in (a.get("selected_category_ids") or []) for cat_id in active_cat_ids)
+        or a.get("pwd_status") or a.get("bpl_status") or a.get("sc_st_status") # Legacy support
     ]
-    reserved_candidates.sort(key=_category_sort_key)
+    
+    # Sort all reserved candidates purely by Merit Score (Equal Priority)
+    reserved_candidates.sort(key=lambda a: -a["merit_score"])
 
     for app in reserved_candidates:
         if total_allocated >= reserved_seats:
             break
 
-        if app["pwd_status"]:      category = "Reserved_PWD"
-        elif app["bpl_status"]:    category = "Reserved_BPL"
-        else:                      category = "Reserved_SCST"
+        # Record dominant category for logging (pick the first match)
+        category = "Reserved"
+        if app.get("selected_category_ids"):
+             category = f"Reserved_Cat_{app['selected_category_ids'][0]}"
+        elif app.get("pwd_status"):   category = "Reserved_PWD"
+        elif app.get("bpl_status"):   category = "Reserved_BPL"
+        elif app.get("sc_st_status"): category = "Reserved_SCST"
 
         supabase_admin.table("allocation").insert({
             "application_id": app["application_id"],

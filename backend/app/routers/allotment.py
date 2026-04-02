@@ -14,7 +14,7 @@ _warden_only = Depends(require_role(["warden"]))
 
 # ── POST /api/v1/allotment/run ───────────────────────────────────────────────
 @router.post("/run")
-async def trigger_allotment(body: AllotmentRequest, user=_warden_only):
+async def trigger_allotment(body: AllotmentRequest, user=_warden_admin):
     # Verify hostel exists
     hostel_resp = (
         supabase_admin.table("hostel")
@@ -37,7 +37,7 @@ async def trigger_allotment(body: AllotmentRequest, user=_warden_only):
 # ── GET /api/v1/allotment/results ────────────────────────────────────────────
 @router.get("/results")
 async def get_allotment_results(
-    academic_year: Optional[int] = None,
+    academic_year: Optional[str] = None,
     user=_warden_admin
 ):
     query = (

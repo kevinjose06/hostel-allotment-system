@@ -22,6 +22,7 @@ import ManageAdvisorsPage from './pages/admin/ManageAdvisorsPage';
 import ManageClassesPage from './pages/admin/ManageClassesPage';
 import ManageHostelsPage from './pages/admin/ManageHostelsPage';
 import ManageWardensPage from './pages/admin/ManageWardensPage';
+import SystemSettingsPage from './pages/admin/SystemSettingsPage';
 
 import WardenDashboard from './pages/warden/WardenDashboard';
 import AllotmentPage from './pages/warden/AllotmentPage';
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="/admin/hostels" element={<ManageHostelsPage />} />
             <Route path="/admin/wardens" element={<ManageWardensPage />} />
             <Route path="/admin/applications" element={<ApplicationsListPage isAdmin />} />
+            <Route path="/admin/settings" element={<SystemSettingsPage />} />
           </Route>
 
           {/* Warden Routes */}

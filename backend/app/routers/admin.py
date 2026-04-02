@@ -6,11 +6,13 @@ from app.schemas.admin import (
     CreateClassRequest, CreateHostelRequest,
     UpdateHostelRequest, CreateWardenRequest, UpdateWardenRequest
 )
+from app.schemas.config import SystemConfigRequest, SystemConfigResponse
 from app.utils.response import success_response, error_response
 
 router = APIRouter(prefix="/api/v1/admin", tags=["Admin"])
 
 _admin = Depends(require_role(["admin"]))
+_admin_warden = Depends(require_role(["admin", "warden"]))
 
 
 # ── POST /api/v1/admin/advisor ───────────────────────────────────────────────
@@ -273,9 +275,11 @@ async def delete_warden(warden_id: int, user=_admin):
 # ── GET /api/v1/admin/stats ──────────────────────────────────────────────────
 @router.get("/stats")
 async def get_dashboard_stats(user=_admin):
+    # Fetch all applications with full details for the Admin
     applications = (
-        supabase_admin.table("application")
-        .select("status")
+        supabase_admin.table("v_application_dashboard")
+        .select("*")
+        .order("merit_score", desc=True)
         .execute()
     )
     allocations = (
@@ -293,6 +297,79 @@ async def get_dashboard_stats(user=_admin):
         "allocations": allocations.data,
         "hostels": hostels.data
     })
+
+
+# ── GET /api/v1/admin/config ────────────────────────────────────────────────
+@router.get("/config")
+async def get_all_configs(user=_admin_warden):
+    resp = supabase_admin.table("system_config").select("*").execute()
+    # Convert list of {key, value} to {key: value} for easier frontend use
+    config_dict = {item["config_key"]: item["config_value"] for item in resp.data}
+    return success_response("System configurations", config_dict)
+
+
+# ── POST /api/v1/admin/config ───────────────────────────────────────────────
+@router.post("/config")
+async def update_config(body: SystemConfigRequest, user=_admin):
+    resp = (
+        supabase_admin.table("system_config")
+        .upsert({"config_key": body.config_key, "config_value": body.config_value})
+        .execute()
+    )
+    return success_response("Configuration updated", resp.data[0] if resp.data else None)
+
+
+# ── GET /api/v1/admin/reservation-categories ──────────────────────────────
+@router.get("/reservation-categories")
+async def get_all_reservation_categories(user=_admin_warden):
+    resp = supabase_admin.table("benefit_category").select("*").order("id").execute()
+    return success_response("Reservation categories", resp.data)
+
+
+# ── POST /api/v1/admin/reservation-categories ─────────────────────────────
+@router.post("/reservation-categories")
+async def upsert_reservation_category(body: dict, user=_admin):
+    # If code is missing, slugify the name
+    if not body.get("code") and body.get("name"):
+        import re
+        name = body["name"].upper()
+        if "SC" in name and "ST" in name:
+            body["code"] = "SCST"
+        else:
+            body["code"] = re.sub(r'[^a-zA-Z0-9]', '', body["name"]).upper()[:20]
+    
+    resp = (
+        supabase_admin.table("benefit_category")
+        .upsert(body)
+        .execute()
+    )
+    return success_response("Category updated", resp.data[0] if resp.data else None)
+
+
+@router.delete("/reservation-categories/{cat_id}")
+async def delete_reservation_category(cat_id: int, user=_admin):
+    # Check if any application is currently using this category
+    # Postgres ANY operator to check for membership in an array
+    usage_check = (
+        supabase_admin.table("application")
+        .select("application_id", count="exact")
+        .contains("selected_category_ids", [cat_id])
+        .execute()
+    )
+    
+    if usage_check.count and usage_check.count > 0:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot delete category: {usage_check.count} student applications are currently using it."
+        )
+
+    resp = (
+        supabase_admin.table("benefit_category")
+        .delete()
+        .eq("id", cat_id)
+        .execute()
+    )
+    return success_response("Category deleted", None)
 
 
 # ── GET /api/v1/admin/warden/me ──────────────────────────────────────────────

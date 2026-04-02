@@ -29,7 +29,7 @@ def _get_advisor_id(user_id: str) -> int:
 @router.get("/applications")
 async def get_my_applications(
     status: Optional[str] = None,
-    academic_year: Optional[int] = None,
+    academic_year: Optional[str] = None,
     user=_advisor
 ):
     advisor_id = _get_advisor_id(user.id)

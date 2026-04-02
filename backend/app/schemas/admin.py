@@ -22,7 +22,7 @@ class CreateClassRequest(BaseModel):
     year: int
     division: str
     advisor_id: int
-    academic_year: int
+    academic_year: str
 
 
 class CreateHostelRequest(BaseModel):

@@ -29,6 +29,28 @@ async def submit_application(
 ):
     student_id = _get_student_id(user.id)
 
+    # Check deadline
+    config_resp = (
+        supabase_admin.table("system_config")
+        .select("config_value")
+        .eq("config_key", "application_deadline")
+        .maybe_single()
+        .execute()
+    )
+    if config_resp.data:
+        from datetime import datetime
+        try:
+            deadline_str = config_resp.data["config_value"]
+            if isinstance(deadline_str, str):
+                deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+                if datetime.now().astimezone() > deadline.astimezone():
+                    raise HTTPException(
+                        status_code=403,
+                        detail="The application deadline has passed. No further submissions are allowed."
+                    )
+        except (ValueError, TypeError):
+            pass 
+
     # Check for existing application this year
     existing = (
         supabase_admin.table("application")
@@ -85,7 +107,8 @@ async def submit_application(
             "guardian_name": body.guardian_name,
             "guardian_contact": body.guardian_contact,
             "merit_score": merit_score,
-            "status": "Pending"
+            "status": "Pending",
+            "selected_category_ids": body.selected_category_ids if hasattr(body, 'selected_category_ids') else []
         })
         .execute()
     )
@@ -129,6 +152,28 @@ async def resubmit_application(
 ):
     student_id = _get_student_id(user.id)
 
+    # Check deadline
+    config_resp = (
+        supabase_admin.table("system_config")
+        .select("config_value")
+        .eq("config_key", "application_deadline")
+        .maybe_single()
+        .execute()
+    )
+    if config_resp.data:
+        from datetime import datetime
+        try:
+            deadline_str = config_resp.data["config_value"]
+            if isinstance(deadline_str, str):
+                deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+                if datetime.now().astimezone() > deadline.astimezone():
+                    raise HTTPException(
+                        status_code=403,
+                        detail="The deadline for re-submitting has passed."
+                    )
+        except (ValueError, TypeError):
+            pass 
+
     # Re-calculate merit score
     income_pts = max(0, 50 - (body.family_annual_income / 100000) * 5)
     dist_pts = min(50, (body.distance_from_college / 500) * 50)
@@ -149,6 +194,8 @@ async def resubmit_application(
     if body.bpl_status is not None: updates["bpl_status"] = body.bpl_status
     if body.pwd_status is not None: updates["pwd_status"] = body.pwd_status
     if body.sc_st_status is not None: updates["sc_st_status"] = body.sc_st_status
+    if body.selected_category_ids is not None:
+        updates["selected_category_ids"] = body.selected_category_ids
 
     resp = (
         supabase_admin.table("application")
@@ -194,7 +241,7 @@ async def get_application_by_id(
 @router.get("/")
 async def get_all_applications(
     status: Optional[str] = None,
-    academic_year: Optional[int] = None,
+    academic_year: Optional[str] = None,
     gender: Optional[str] = None,
     department: Optional[str] = None,
     user=Depends(require_role(["admin"]))

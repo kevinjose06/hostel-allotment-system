@@ -97,9 +97,9 @@ export default function ApplicationStatus() {
                 <CalendarDays className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Applied For</p>
-                <p className="font-semibold text-primary text-lg">Academic Year {app.academic_year}</p>
-                <p className="text-xs text-on-surface-variant mt-1.5">{new Date(app.application_date).toLocaleDateString()}</p>
+                <p className="text-xs text-on-surface-variant font-semibold tracking-wider uppercase mb-1.5">Academic Session</p>
+                <p className="font-semibold text-primary text-lg">{app.academic_year}</p>
+                <p className="text-xs text-on-surface-variant mt-1.5">Applied: {new Date(app.submitted_at || app.application_date).toLocaleDateString()}</p>
               </div>
             </div>
 

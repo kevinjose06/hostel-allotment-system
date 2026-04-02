@@ -20,11 +20,31 @@ export default function ApplicationsListPage({ isAdmin = false }) {
       params: statusFilter !== 'All' ? { status: statusFilter } : {}
     }).then(r => {
       const apps = isAdmin ? r.data.data?.applications || [] : r.data.data;
-      // Sanitize standard relation wrapping from PostgREST Arrays
-      return apps.map(app => ({
-        ...app,
-        student: Array.isArray(app.student) ? app.student[0] : app.student
-      }));
+      
+      return apps.map(app => {
+        // If it's from the Admin dashboard view, it might be flat
+        if (isAdmin && app.student_name) {
+          const names = app.student_name.split(' ');
+          return {
+            ...app,
+            student: {
+              first_name: names[0],
+              last_name: names.slice(1).join(' '),
+              college_id: app.college_id,
+              class: {
+                department: app.department,
+                degree_program: app.degree_program
+              }
+            }
+          };
+        }
+        
+        // Standard advisor relation mapping
+        return {
+          ...app,
+          student: Array.isArray(app.student) ? app.student[0] : app.student
+        };
+      });
     })
   });
 
