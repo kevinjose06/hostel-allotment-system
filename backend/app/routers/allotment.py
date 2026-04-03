@@ -23,7 +23,7 @@ async def trigger_allotment(body: AllotmentRequest, user=_warden_admin):
         .maybe_single()
         .execute()
     )
-    if not hostel_resp.data:
+    if not hostel_resp or not getattr(hostel_resp, 'data', None):
         raise HTTPException(status_code=404, detail="Hostel not found")
 
     try:

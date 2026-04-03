@@ -114,8 +114,8 @@ export default function AllotmentPage() {
                  {academicYear || 'Loading session...'}
               </p>
             </div>
-            <p className="text-[11px] text-on-surface-variant/60 mt-2 italic">
-              Automatically set from global system configuration.
+            <p className="text-[11px] text-on-surface-variant/70 mt-2 italic flex items-center gap-1.5">
+              <CheckCircle2 className="h-3 w-3 text-secondary" /> Only student applications for this session will be considered.
             </p>
           </div>
 
