@@ -36,8 +36,6 @@ export const getFriendlyErrorMessage = (error) => {
     return "Infrastructure connectivity error. Please check your internet connection.";
   }
 
-  // TODO (PRODUCTION): Replace the line below with the friendly fallback message.
-  // return "Could not complete the requested action. Please contact the Institutional Administrator if the issue persists.";
   console.error("[ERROR]:", error);
   return error?.message || error?.error_description || String(error);
 };

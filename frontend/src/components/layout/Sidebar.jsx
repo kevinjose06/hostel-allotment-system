@@ -33,9 +33,27 @@ const NAV_CONFIG = {
   ]
 };
 
+import { useQuery } from '@tanstack/react-query';
+import api from '../../services/api';
+
 export default function Sidebar() {
   const { userRole, signOut } = useAuth();
-  const navItems = NAV_CONFIG[userRole] || [];
+  
+  // Fetch deadline and other configs
+  const { data: configs } = useQuery({
+    queryKey: ['system-configs'],
+    queryFn: () => api.get(userRole === 'student' ? '/student/config' : '/admin/config').then(r => r.data.data),
+    staleTime: 600000 // 10 mins cache
+  });
+
+  const isRegistrationClosed = userRole === 'student' && configs?.application_deadline && new Date() > new Date(configs.application_deadline);
+
+  const rawNavItems = NAV_CONFIG[userRole] || [];
+  
+  // Filter out 'Apply' if deadline passed
+  const navItems = isRegistrationClosed 
+    ? rawNavItems.filter(item => item.to !== '/student/apply')
+    : rawNavItems;
 
   return (
     <aside className="w-64 bg-surface-container-lowest border-r border-outline-variant/20 flex flex-col h-screen shrink-0 relative z-20 shadow-ambient shadow-primary-fixed/5">

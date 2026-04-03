@@ -172,6 +172,17 @@ export const applicationService = {
       selected_category_ids: applicationData.selected_category_ids || []
     });
 
+    // 3. Save document metadata into student_document table (Internal Upsert)
+    if (uploadedDocs.length > 0) {
+      const docRows = uploadedDocs.map(d => ({
+        student_id: student.student_id,
+        document_type: d.docType,
+        file_path: d.path,
+        verification_status: 'Pending',
+      }));
+      await supabase.from('student_document').upsert(docRows, { onConflict: 'student_id,document_type' });
+    }
+
     return response.data.data;
   },
 

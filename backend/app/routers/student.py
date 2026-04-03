@@ -126,3 +126,9 @@ async def get_available_classes():
         .execute()
     )
     return success_response("Classes", resp.data)
+# ── GET /api/v1/student/config ──────────────────────────────────────────────
+@router.get("/config")
+async def get_student_config(user=Depends(get_current_user)):
+    resp = supabase_admin.table("system_config").select("*").execute()
+    config_dict = {item["config_key"]: item["config_value"] for item in resp.data}
+    return success_response("System configuration", config_dict)

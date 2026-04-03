@@ -16,7 +16,7 @@ def _get_student_id(user_id: str) -> int:
         .single()
         .execute()
     )
-    if not resp.data:
+    if not resp or not getattr(resp, 'data', None):
         raise HTTPException(status_code=404, detail="Student record not found")
     return resp.data["student_id"]
 
@@ -27,92 +27,58 @@ async def submit_application(
     body: ApplicationSubmitRequest,
     user=Depends(require_role(["student"]))
 ):
-    student_id = _get_student_id(user.id)
+    import asyncio
 
-    # Check deadline
-    config_resp = (
-        supabase_admin.table("system_config")
-        .select("config_value")
-        .eq("config_key", "application_deadline")
-        .maybe_single()
-        .execute()
-    )
-    if config_resp.data:
-        from datetime import datetime
-        try:
-            deadline_str = config_resp.data["config_value"]
-            if isinstance(deadline_str, str):
-                deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
-                if datetime.now().astimezone() > deadline.astimezone():
-                    raise HTTPException(
-                        status_code=403,
-                        detail="The application deadline has passed. No further submissions are allowed."
-                    )
-        except (ValueError, TypeError):
-            pass 
+    # 1. Fetch student info and deadline in parallel
+    async def get_base_data():
+        s_task = asyncio.to_thread(lambda: supabase_admin.table("student").select("student_id, class(advisor_id)").eq("auth_uid", user.id).single().execute())
+        c_task = asyncio.to_thread(lambda: supabase_admin.table("system_config").select("config_value").eq("config_key", "application_deadline").maybe_single().execute())
+        return await asyncio.gather(s_task, c_task)
 
-    # Check for existing application this year
-    existing = (
-        supabase_admin.table("application")
-        .select("application_id")
-        .eq("student_id", student_id)
-        .eq("academic_year", body.academic_year)
-        .maybe_single()
-        .execute()
-    )
-    if existing and existing.data:
-        raise HTTPException(
-            status_code=409,
-            detail="Application already submitted for this academic year"
-        )
-
-    # 1. Fetch current profile snapshot for advisor_id
-    student_info = (
-        supabase_admin.table("student")
-        .select("class_id, class(advisor_id)")
-        .eq("student_id", student_id)
-        .single()
-        .execute()
-    )
+    student_res, config_res = await get_base_data()
+    if not student_res or not getattr(student_res, 'data', None): raise HTTPException(status_code=404, detail="Student not found")
     
-    # Safely extract advisor_id
-    cls_data = student_info.data.get("class", {})
-    if isinstance(cls_data, list) and len(cls_data) > 0:
-        cls_data = cls_data[0]
+    student_id = student_res.data["student_id"]
+    advisor_id = (student_res.data.get("class", {}) or {}).get("advisor_id")
+    if not advisor_id: raise HTTPException(status_code=400, detail="No advisor assigned to class.")
+
+    # 2. Check deadline and existing app
+    async def check_rules():
+        if config_res and getattr(config_res, 'data', None):
+            from datetime import datetime
+            deadline = datetime.fromisoformat(config_res.data["config_value"].replace('Z', '+00:00'))
+            if datetime.now().astimezone() > deadline.astimezone(): return "deadline_ended"
+        
+        existing = await asyncio.to_thread(lambda: supabase_admin.table("application").select("application_id").eq("student_id", student_id).eq("academic_year", body.academic_year).maybe_single().execute())
+        return "already_done" if existing and getattr(existing, 'data', None) else None
+
+    rule_err = await check_rules()
+    if rule_err == "deadline_ended": raise HTTPException(status_code=403, detail="Deadline passed.")
+    if rule_err == "already_done": raise HTTPException(status_code=409, detail="Already applied this year.")
+
+    # 3. Calculate merit and perform submission
+    merit_score = round(max(0, 50 - (body.family_annual_income / 100000) * 5) + min(50, (body.distance_from_college / 500) * 50), 2)
     
-    advisor_id = cls_data.get("advisor_id")
-    if not advisor_id:
-         raise HTTPException(status_code=400, detail="No advisor assigned to your class. Please contact Admin.")
+    app_vals = {
+        "student_id": student_id, "advisor_id": advisor_id, "academic_year": body.academic_year,
+        "family_annual_income": body.family_annual_income, "distance_from_college": body.distance_from_college,
+        "bpl_status": body.bpl_status, "pwd_status": body.pwd_status, "sc_st_status": body.sc_st_status,
+        "home_address": body.home_address, "guardian_name": body.guardian_name, "guardian_contact": body.guardian_contact,
+        "merit_score": merit_score, "status": "Pending", "selected_category_ids": getattr(body, 'selected_category_ids', [])
+    }
 
-    # 2. Calculate merit score (identical logic to frontend)
-    # Income points: 50 - (income / 100000) * 5
-    # Distance points: (distance / 500) * 50
-    income_pts = max(0, 50 - (body.family_annual_income / 100000) * 5)
-    dist_pts = min(50, (body.distance_from_college / 500) * 50)
-    merit_score = round(income_pts + dist_pts, 2)
+    # Parallelize insertions
+    async def save_all():
+        a_task = asyncio.to_thread(lambda: supabase_admin.table("application").insert(app_vals).execute())
+        p_task = asyncio.to_thread(lambda: supabase_admin.table("student_academics").upsert({
+            "student_id": student_id, "family_annual_income": body.family_annual_income,
+            "distance_from_college": body.distance_from_college, "bpl_status": body.bpl_status,
+            "pwd_status": body.pwd_status, "sc_st_status": body.sc_st_status,
+        }, on_conflict="student_id").execute())
+        return await asyncio.gather(a_task, p_task)
 
-    # 3. Insert Application
-    resp = (
-        supabase_admin.table("application")
-        .insert({
-            "student_id": student_id,
-            "advisor_id": advisor_id,
-            "academic_year": body.academic_year,
-            "family_annual_income": body.family_annual_income,
-            "distance_from_college": body.distance_from_college,
-            "bpl_status": body.bpl_status,
-            "pwd_status": body.pwd_status,
-            "sc_st_status": body.sc_st_status,
-            "home_address": body.home_address,
-            "guardian_name": body.guardian_name,
-            "guardian_contact": body.guardian_contact,
-            "merit_score": merit_score,
-            "status": "Pending",
-            "selected_category_ids": body.selected_category_ids if hasattr(body, 'selected_category_ids') else []
-        })
-        .execute()
-    )
-    return success_response("Application submitted", resp.data[0])
+    results = await save_all()
+    return success_response("Application submitted", results[0].data[0])
 
 
 # ── GET /api/v1/application/my ───────────────────────────────────────────────
@@ -139,7 +105,7 @@ async def get_my_application(user=Depends(get_current_user)):
         .maybe_single()
         .execute()
     )
-    if not resp.data:
+    if not resp or not getattr(resp, 'data', None):
         raise HTTPException(status_code=404, detail="No application found")
     return success_response("Application", resp.data)
 
@@ -160,7 +126,7 @@ async def resubmit_application(
         .maybe_single()
         .execute()
     )
-    if config_resp.data:
+    if config_resp and getattr(config_resp, 'data', None):
         from datetime import datetime
         try:
             deadline_str = config_resp.data["config_value"]
@@ -205,7 +171,7 @@ async def resubmit_application(
         .in_("status", ["Pending", "Returned"]) # Allow editing both
         .execute()
     )
-    if not resp.data:
+    if not resp or not getattr(resp, 'data', None):
         raise HTTPException(
             status_code=404,
             detail="No application found to update"
@@ -232,7 +198,7 @@ async def get_application_by_id(
         .single()
         .execute()
     )
-    if not resp.data:
+    if not resp or not getattr(resp, 'data', None):
         raise HTTPException(status_code=404, detail="Application not found")
     return success_response("Application", resp.data)
 

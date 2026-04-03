@@ -80,7 +80,7 @@ export default function ApplicationPage() {
 
   const { data: configs } = useQuery({
     queryKey: ['system-configs'],
-    queryFn: () => api.get('/admin/config').then(r => r.data.data)
+    queryFn: () => api.get('/student/config').then(r => r.data.data)
   });
 
   const activeCategories = categories.filter(c => c.is_active);
@@ -143,15 +143,22 @@ export default function ApplicationPage() {
     );
   }
 
-  // Lock the form only when the application is being reviewed or finalised
-  if (existing && ['Under_Review', 'Approved', 'Waitlisted'].includes(existing.status)) {
+  // Lock the form only when the application is being reviewed, finalised, or rejected
+  if (existing && ['Under_Review', 'Approved', 'Waitlisted', 'Rejected'].includes(existing.status)) {
+    const isRejected = existing.status === 'Rejected';
     return (
       <div className="max-w-2xl mx-auto mt-12 p-8 bg-surface border border-outline-variant/20 rounded-md shadow-ambient text-center">
-        <div className="w-16 h-16 bg-surface-container text-primary rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
-          ⏳
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl ${isRejected ? 'bg-error/10 text-error' : 'bg-surface-container text-primary'}`}>
+          {isRejected ? '❌' : '⏳'}
         </div>
-        <h2 className="font-serif text-2xl text-primary mb-2">Application Under Review</h2>
-        <p className="font-sans text-on-surface-variant mb-8 leading-relaxed">Your application is currently being processed. Changes cannot be made at this stage.</p>
+        <h2 className={`font-serif text-2xl mb-2 ${isRejected ? 'text-error' : 'text-primary'}`}>
+          {isRejected ? 'Application Rejected' : 'Application Under Review'}
+        </h2>
+        <p className="font-sans text-on-surface-variant mb-8 leading-relaxed">
+          {isRejected 
+            ? 'Your application has been thoroughly reviewed and regrettably rejected for this academic year. You may not re-submit.' 
+            : 'Your application is currently being processed. Changes cannot be made at this stage.'}
+        </p>
         <button onClick={() => navigate('/student/status')} className="btn-primary w-full sm:w-auto">
           View Application Status
         </button>

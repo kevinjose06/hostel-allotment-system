@@ -49,7 +49,8 @@ export default function RegisterPage() {
       const selectedClass = classes.find(c => c.class_id === Number(data.class_id));
       const payload = { 
         ...data, 
-        department: selectedClass ? selectedClass.department : null 
+        middle_name: data.middle_name || '',
+        department: selectedClass ? selectedClass.department : '' 
       };
       
       await authService.registerStudent(payload);
@@ -139,6 +140,7 @@ export default function RegisterPage() {
                     <option value="">Select gender</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
+                    <option value="Other">Other</option>
                   </select>
                 </div>
                 <div>

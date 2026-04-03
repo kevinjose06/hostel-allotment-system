@@ -35,45 +35,45 @@ async def register_student(body: StudentRegisterRequest):
 
     auth_uid = auth_resp.user.id
 
-    # 2. Insert core student record
+    import asyncio
+
+    # 2. Parallelize: Get class info and create student record
+    async def create_student_records():
+        # Fetch class info if year is missing
+        year_to_save = body.year_of_study
+        if year_to_save is None:
+            c_info = await asyncio.to_thread(lambda: supabase_admin.table("class").select("year").eq("class_id", body.class_id).maybe_single().execute())
+            year_to_save = (getattr(c_info, 'data', None) or {}).get("year", 1)
+
+        # Create student record
+        s_resp = await asyncio.to_thread(lambda: supabase_admin.table("student").insert({
+            "auth_uid": auth_uid, "email": body.email, "first_name": body.first_name,
+            "middle_name": body.middle_name, "last_name": body.last_name,
+            "college_id": body.college_id, "gender": body.gender,
+            "date_of_birth": body.date_of_birth, "contact_number": body.contact_number,
+            "class_id": body.class_id, "department": body.department
+        }).execute())
+
+        if not s_resp.data: raise Exception("Student creation failed")
+        s_id = s_resp.data[0]["student_id"]
+
+        # Create academic record
+        await asyncio.to_thread(lambda: supabase_admin.table("student_academics").insert({
+            "student_id": s_id, "year_of_study": year_to_save,
+            "family_annual_income": body.family_annual_income or 0,
+            "distance_from_college": body.distance_from_college or 0,
+            "bpl_status": body.bpl_status, "pwd_status": body.pwd_status, "sc_st_status": body.sc_st_status
+        }).execute())
+        
+        return s_resp.data[0]
+
     try:
-        db_resp = supabase_admin.table("student").insert({
-            "auth_uid": auth_uid,
-            "email": body.email,
-            "first_name": body.first_name,
-            "middle_name": body.middle_name,
-            "last_name": body.last_name,
-            "college_id": body.college_id,
-            "gender": body.gender,
-            "date_of_birth": body.date_of_birth,
-            "contact_number": body.contact_number,
-            "class_id": body.class_id
-        }).execute()
-
-        if not db_resp.data:
-             raise Exception("Database response was empty during student insertion")
-             
-        student_id = db_resp.data[0]["student_id"]
-
-        # 3. Insert academic/socioeconomic profile record
-        supabase_admin.table("student_academics").insert({
-            "student_id": student_id,
-            "year_of_study": body.year_of_study,
-            "family_annual_income": body.family_annual_income,
-            "distance_from_college": body.distance_from_college,
-            "bpl_status": body.bpl_status,
-            "pwd_status": body.pwd_status,
-            "sc_st_status": body.sc_st_status
-        }).execute()
+        final_student_data = await create_student_records()
     except Exception as e:
-        # Rollback: delete the auth user
         supabase_admin.auth.admin.delete_user(auth_uid)
         raise HTTPException(status_code=400, detail=str(e))
 
-    return success_response(
-        "Student registered. Please verify your email.",
-        db_resp.data[0] if db_resp.data else None
-    )
+    return success_response("Student registered. Please verify email.", final_student_data)
 
 
 # ── POST /api/v1/auth/login ──────────────────────────────────────────────────
