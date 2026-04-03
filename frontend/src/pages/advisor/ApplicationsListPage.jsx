@@ -8,44 +8,54 @@ import { Search } from 'lucide-react';
 
 const STATUSES = ['All', 'Pending', 'Approved', 'Rejected', 'Returned'];
 
-export default function ApplicationsListPage({ isAdmin = false }) {
+export default function ApplicationsListPage({ isAdmin = false, isWarden = false }) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [search, setSearch] = useState('');
 
-  const endpoint = isAdmin ? '/admin/stats' : '/advisor/applications';
+  const { data: wardenProfile } = useQuery({
+    queryKey: ['warden-me'],
+    queryFn: () => api.get('/admin/warden/me').then(r => r.data.data),
+    enabled: isWarden
+  });
+
+  const endpoint = (isAdmin || isWarden) ? '/admin/stats' : '/advisor/applications';
   
   const { data: rawApps = [], isLoading } = useQuery({
-    queryKey: [isAdmin ? 'admin-applications' : 'advisor-applications', statusFilter],
-    queryFn: () => api.get(endpoint, {
-      params: statusFilter !== 'All' ? { status: statusFilter } : {}
-    }).then(r => {
-      const apps = isAdmin ? r.data.data?.applications || [] : r.data.data;
+    queryKey: [isAdmin ? 'admin-applications' : isWarden ? 'warden-applications' : 'advisor-applications', statusFilter, wardenProfile?.hostel_id],
+    queryFn: () => {
+      const params = {};
+      if (statusFilter !== 'All') params.status = statusFilter;
+      if (isWarden && wardenProfile?.hostel_id) params.hostel_id = wardenProfile.hostel_id;
       
-      return apps.map(app => {
-        // If it's from the Admin dashboard view, it might be flat
-        if (isAdmin && app.student_name) {
-          const names = app.student_name.split(' ');
+      return api.get(endpoint, { params }).then(r => {
+        const apps = (isAdmin || isWarden) ? r.data.data?.applications || [] : r.data.data;
+        
+        return apps.map(app => {
+          // If it's from the Admin dashboard view, it might be flat
+          if ((isAdmin || isWarden) && app.student_name) {
+            const names = app.student_name.split(' ');
+            return {
+              ...app,
+              student: {
+                first_name: names[0],
+                last_name: names.slice(1).join(' '),
+                college_id: app.college_id,
+                class: {
+                  department: app.department,
+                  degree_program: app.degree_program
+                }
+              }
+            };
+          }
+          
+          // Standard advisor relation mapping
           return {
             ...app,
-            student: {
-              first_name: names[0],
-              last_name: names.slice(1).join(' '),
-              college_id: app.college_id,
-              class: {
-                department: app.department,
-                degree_program: app.degree_program
-              }
-            }
+            student: Array.isArray(app.student) ? app.student[0] : app.student
           };
-        }
-        
-        // Standard advisor relation mapping
-        return {
-          ...app,
-          student: Array.isArray(app.student) ? app.student[0] : app.student
-        };
+        });
       });
-    })
+    }
   });
 
   const filtered = rawApps.filter(a =>

@@ -21,7 +21,9 @@ export default function AllotmentPage() {
     queryFn: () => api.get('/admin/warden/me').then(r => r.data.data)
   });
 
-  // Sync state with query data (React Query v5 doesn't support onSuccess in useQuery)
+  const queryClient = useQueryClient();
+
+  // Sync state with query data
   useEffect(() => {
     if (configs?.academic_year) {
       setAcademicYear(configs.academic_year);
@@ -31,7 +33,7 @@ export default function AllotmentPage() {
     }
   }, [configs, wardenProfile]);
 
-  // Fetch all hostels for the dropdown (warden may cover multiple or admin view)
+  // Fetch all hostels for the dropdown
   const { data: hostels = [], isLoading: isHostelsLoading } = useQuery({
     queryKey: ['hostels'],
     queryFn: () => api.get('/hostel').then(r => r.data.data)
@@ -45,7 +47,8 @@ export default function AllotmentPage() {
     onSuccess: (res) => {
       setResult(res.data.data);
       toast.success('Allotment completed successfully!');
-      qc.invalidateQueries(['hostels']);
+      queryClient.invalidateQueries({ queryKey: ['hostels'] });
+      queryClient.invalidateQueries({ queryKey: ['allotment-results'] });
     },
     onError: (err) => {
       const detail = err?.response?.data?.detail;

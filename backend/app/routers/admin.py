@@ -274,14 +274,23 @@ async def delete_warden(warden_id: int, user=_admin):
 
 # ── GET /api/v1/admin/stats ──────────────────────────────────────────────────
 @router.get("/stats")
-async def get_dashboard_stats(user=_admin):
-    # Fetch all applications with full details for the Admin
-    applications = (
-        supabase_admin.table("v_application_dashboard")
-        .select("*")
-        .order("merit_score", desc=True)
-        .execute()
-    )
+async def get_dashboard_stats(
+    status: Optional[str] = None,
+    academic_year: Optional[str] = None,
+    hostel_id: Optional[int] = None,
+    user=_admin_warden
+):
+    # Fetch applications with optional filtering
+    query = supabase_admin.table("v_application_dashboard").select("*")
+    
+    if status and status != 'All':
+        query = query.eq("status", status)
+    if academic_year:
+        query = query.eq("academic_year", academic_year)
+    if hostel_id:
+        query = query.eq("hostel_id", hostel_id)
+        
+    applications = query.order("merit_score", desc=True).execute()
     allocations = (
         supabase_admin.table("allocation")
         .select("status")

@@ -54,14 +54,21 @@ async def get_allotment_results(
 
 # ── GET /api/v1/allotment/hostel/{hostel_id} ─────────────────────────────────
 @router.get("/hostel/{hostel_id}")
-async def get_hostel_allotment_results(hostel_id: int, user=_warden_admin):
-    resp = (
+async def get_hostel_allotment_results(
+    hostel_id: int, 
+    academic_year: Optional[str] = None,
+    user=_warden_admin
+):
+    query = (
         supabase_admin.table("v_allocation_result")
         .select("*")
         .eq("hostel_id", hostel_id)
         .order("allocation_date", desc=True)
-        .execute()
     )
+    if academic_year:
+        query = query.eq("academic_year", academic_year)
+        
+    resp = query.execute()
     return success_response("Hostel allotment results", resp.data)
 
 

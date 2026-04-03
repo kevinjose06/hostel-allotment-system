@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { FileText, Download, User, Calendar, Building2, Hash } from 'lucide-react';
+import { FileText, Download, User, Calendar, Building2, Hash, Sparkles } from 'lucide-react';
 import api from '../../services/api';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import toast from 'react-hot-toast';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 export default function AllotmentResultsPage() {
   const { data: wardenProfile, isLoading: isProfileLoading } = useQuery({
@@ -12,11 +12,17 @@ export default function AllotmentResultsPage() {
     queryFn: () => api.get('/admin/warden/me').then(r => r.data.data)
   });
 
+  const { data: configs } = useQuery({
+    queryKey: ['system-configs'],
+    queryFn: () => api.get('/admin/config').then(r => r.data.data)
+  });
+
   const hostelId = wardenProfile?.hostel_id;
+  const sysYear = configs?.academic_year || '2026-2027';
 
   const { data: results = [], isLoading: isResultsLoading } = useQuery({
-    queryKey: ['allotment-results', hostelId],
-    queryFn: () => api.get(`/allotment/hostel/${hostelId}`).then(r => r.data.data),
+    queryKey: ['allotment-results', hostelId, sysYear],
+    queryFn: () => api.get(`/allotment/hostel/${hostelId}?academic_year=${sysYear}`).then(r => r.data.data),
     enabled: !!hostelId
   });
 
@@ -29,16 +35,16 @@ export default function AllotmentResultsPage() {
     try {
       const doc = new jsPDF();
       const hostelName = results[0]?.hostel_name || 'Hostel';
-      const academicYear = results[0]?.academic_year || 'N/A';
-      const today = new Date().toLocaleDateString();
+      const academicYear = sysYear; // Forcibly use global config year for official reports
+      const today = new Date().toLocaleDateString('en-IN');
 
       // Header
       doc.setFontSize(22);
       doc.setTextColor(26, 54, 93); // Primary color
-      doc.text('RGIT Kottayam', 105, 20, { align: 'center' });
+      doc.text('RIT Kottayam', 105, 20, { align: 'center' });
       
       doc.setFontSize(16);
-      doc.text('Hostel Allotment Manifest', 105, 30, { align: 'center' });
+      doc.text('Hostel Allotment List', 105, 30, { align: 'center' });
       
       doc.setDrawColor(200, 200, 200);
       doc.line(20, 35, 190, 35);
@@ -47,21 +53,20 @@ export default function AllotmentResultsPage() {
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Hostel: ${hostelName}`, 20, 45);
-      doc.text(`Academic Year: ${academicYear}`, 20, 50);
+      doc.text(`Academic Session: ${academicYear}`, 20, 50);
       doc.text(`Generated On: ${today}`, 190, 45, { align: 'right' });
       doc.text(`Total Allotted: ${results.length}`, 190, 50, { align: 'right' });
 
-      // Table
-      const tableColumn = ["Sl No", "Student Name", "Category", "Merit Score", "Allotted Date"];
+      // Table mapping for PDF
+      const tableColumn = ["Sl No", "Student Name", "Department"];
       const tableRows = results.map((res, index) => [
         index + 1,
         res.student_name,
-        res.category.replace('Reserved_', '').replace('_', ' '),
-        res.merit_score,
-        new Date(res.allocation_date).toLocaleDateString()
+        res.department || 'N/A'
       ]);
 
-      doc.autoTable({
+      // Using autoTable import correctly
+      autoTable(doc, {
         head: [tableColumn],
         body: tableRows,
         startY: 60,
@@ -69,20 +74,25 @@ export default function AllotmentResultsPage() {
         headStyles: { fillColor: [26, 54, 93], textColor: [255, 255, 255], fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 247, 250] },
         margin: { top: 60 },
-        styles: { fontSize: 9, cellPadding: 3 }
+        styles: { fontSize: 9, cellPadding: 4 },
+        columnStyles: {
+          0: { cellWidth: 20 },
+          1: { cellWidth: 80 },
+          2: { cellWidth: 70 }
+        }
       });
 
-      // Footer
+      // Footer numbering
       const pageCount = doc.internal.getNumberOfPages();
       for(let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
         doc.setTextColor(150);
-        doc.text(`Page ${i} of ${pageCount} - RGIT Hostel Management System`, 105, 285, { align: 'center' });
+        doc.text(`Page ${i} of ${pageCount} - RIT Hostel Management System`, 105, 285, { align: 'center' });
       }
 
-      doc.save(`Allotment_${hostelName.replace(' ', '_')}_${academicYear}.pdf`);
-      toast.success('Allotment manifest exported successfully!');
+      doc.save(`Hostel_Allotment_List_${hostelName.replace(/ /g, '_')}_${academicYear.replace(/-/g, '_')}.pdf`);
+      toast.success('Allotment list exported successfully!');
     } catch (error) {
       console.error('PDF Export Error:', error);
       toast.error('Failed to export PDF. Check console for details.');
@@ -97,7 +107,7 @@ export default function AllotmentResultsPage() {
         <div>
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-2 block">Reporting Engine</span>
           <h1 className="font-serif text-4xl text-primary tracking-tight">Allocation Manifest</h1>
-          <p className="font-sans text-on-surface-variant mt-2 text-base">Audit final spatial mapping and designated residential allocations.</p>
+          <p className="font-sans text-on-surface-variant mt-2 text-base">Hostel residential mapping for session {sysYear}.</p>
         </div>
         <button 
           onClick={downloadReport} 
@@ -115,49 +125,36 @@ export default function AllotmentResultsPage() {
           </div>
           <p className="font-serif font-bold text-2xl text-primary mb-2">No Allocations Found</p>
           <p className="text-on-surface-variant max-w-sm mx-auto leading-relaxed">
-            There are no room assignments recorded for your hostel in the current academic year. Please run the allotment engine first.
+            There are no room assignments recorded for your hostel for the {sysYear} session. Please run the allotment engine first.
           </p>
         </div>
       ) : (
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto border-t border-outline-variant/10">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-surface-container text-primary uppercase text-[10px] font-bold tracking-widest border-b border-outline-variant/20">
+                <tr className="bg-surface-container-low text-primary uppercase text-[10px] font-bold tracking-widest border-b border-outline-variant/20">
                   <th className="px-6 py-5">Sl No</th>
                   <th className="px-6 py-5">Student Name</th>
-                  <th className="px-6 py-5">Category</th>
-                  <th className="px-6 py-5">Merit Score</th>
-                  <th className="px-6 py-5">Allotted Date</th>
+                  <th className="px-6 py-5">Department</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-outline-variant/10">
                 {results.map((res, index) => (
                   <tr key={index} className="hover:bg-primary/5 transition-colors group">
-                    <td className="px-6 py-5 text-sm font-medium text-on-surface-variant">
+                    <td className="px-6 py-5 text-sm font-medium text-on-surface-variant tracking-wider">
                       {String(index + 1).padStart(2, '0')}
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-sm bg-primary/10 text-primary flex items-center justify-center font-serif text-sm font-bold">
+                        <div className="h-9 w-9 rounded-md bg-primary/10 text-primary flex items-center justify-center font-serif text-sm font-bold border border-primary/20">
                           {res.student_name?.[0]}
                         </div>
-                        <span className="text-sm font-bold text-primary">{res.student_name}</span>
+                        <span className="text-sm font-bold text-primary tracking-tight">{res.student_name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
-                      <span className="text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 bg-secondary/10 text-secondary border border-secondary/20 rounded">
-                        {res.category.replace('Reserved_', '').replace('_', ' ')}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                         <Sparkles className="w-3.5 h-3.5 text-primary" />
-                         <span className="text-sm font-serif font-bold text-primary">{res.merit_score}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-sm text-on-surface-variant font-medium">
-                      {new Date(res.allocation_date).toLocaleDateString()}
+                    <td className="px-6 py-5 text-sm font-medium text-on-surface-variant">
+                      {res.department || 'N/A'}
                     </td>
                   </tr>
                 ))}
@@ -169,7 +166,3 @@ export default function AllotmentResultsPage() {
     </div>
   );
 }
-
-const Sparkles = ({ className }) => (
-  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
-);

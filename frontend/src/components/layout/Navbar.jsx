@@ -10,7 +10,7 @@ export default function Navbar() {
       <div className="font-serif text-2xl text-primary font-medium tracking-tight">
         {userRole === 'admin' ? 'System Administration' : 
          userRole === 'advisor' ? 'Class Advisor Portal' : 
-         userRole === 'warden' ? 'Warden Command Center' : 
+         userRole === 'warden' ? 'Warden Portal' : 
          'Student Dashboard'}
       </div>
       

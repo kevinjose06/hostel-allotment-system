@@ -70,6 +70,7 @@ export default function App() {
             <Route path="/warden/dashboard" element={<WardenDashboard />} />
             <Route path="/warden/allotment" element={<AllotmentPage />} />
             <Route path="/warden/results" element={<AllotmentResultsPage />} />
+            <Route path="/warden/applications" element={<ApplicationsListPage isWarden />} />
           </Route>
 
           {/* Default redirect */}

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import HostelOccupancyCard from '../../components/shared/HostelOccupancyCard';
 import { Building2, FileText, CheckSquare, ListOrdered } from 'lucide-react';
@@ -40,9 +41,9 @@ export default function WardenDashboard() {
           </div>
           <p className="font-serif text-2xl font-bold text-primary mb-2">View Results</p>
           <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">See the full list of room assignments, category-wise allocation results, and individual student details.</p>
-          <a href="/warden/results" className="font-bold uppercase tracking-widest text-[11px] w-full py-3.5 bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30 rounded-md transition-colors block">
+          <Link to="/warden/applications" className="font-bold uppercase tracking-widest text-[11px] w-full py-3.5 bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30 rounded-md transition-colors block">
             Review Documents
-          </a>
+          </Link>
         </div>
 
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col items-center text-center">

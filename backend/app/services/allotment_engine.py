@@ -84,11 +84,11 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     reserved_seats = math.floor(total_capacity * (res_percent / 100))
     gender_filter  = "Female" if hostel_type == "LH" else "Male"
 
-    # 2. Fetch all approved applications with student info
+    # 2. Fetch all approved applications for the correct academic year (with leniency)
+    # We fetch ALL approved apps first and then filter in Python for robustness
     apps_resp = await asyncio.to_thread(
         lambda: supabase_admin.table("application")
         .select("*, student (*)")
-        .eq("academic_year", academic_year)
         .eq("status", "Approved")
         .execute()
     )
@@ -96,7 +96,6 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     def _get_gender(app_data):
         student = app_data.get("student")
         if not student: return None
-        # Handle dict or list returned by join
         if isinstance(student, list) and len(student) > 0:
             student = student[0]
         if isinstance(student, dict):
@@ -104,9 +103,15 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
             return g.strip().capitalize() if g else None
         return None
 
+    def _match_year(app_year, target_year):
+        ay = str(app_year or "").strip().lower()
+        ty = str(target_year or "").strip().lower()
+        # Lenient match: e.g. "2026" matches "2026-2027"
+        return ay == ty or (ay in ty and len(ay) >= 4) or (ty in ay and len(ty) >= 4)
+
     all_apps: List[Dict] = [
         a for a in (getattr(apps_resp, 'data', None) or [])
-        if _get_gender(a) == gender_filter.capitalize()
+        if _match_year(a.get("academic_year"), academic_year) and _get_gender(a) == gender_filter.capitalize()
     ]
 
     if not all_apps:
@@ -133,10 +138,27 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     await asyncio.gather(*(update_merit(app) for app in all_apps))
 
     # 4. Filter already allotted
-    app_ids = [a["application_id"] for a in all_apps]
-    alloc_resp = await asyncio.to_thread(lambda: supabase_admin.table("allocation").select("application_id").in_("application_id", app_ids).execute())
-    already_allotted = {r["application_id"] for r in (getattr(alloc_resp, 'data', None) or [])}
-    unallotted = [a for a in all_apps if a["application_id"] not in already_allotted]
+    # Security Update: We check if the STUDENT (not just this application) 
+    # has any existing allocation for the target academic year.
+    all_student_ids = [a["student_id"] for a in all_apps]
+    
+    # We join with application to verify the academic_year of the existing allocation
+    existing_alloc_resp = await asyncio.to_thread(
+        lambda: supabase_admin.table("allocation")
+        .select("application!inner(student_id, academic_year)")
+        .eq("application.academic_year", academic_year)
+        .eq("status", "Active")
+        .execute()
+    )
+    
+    already_allotted_student_ids = set()
+    if existing_alloc_resp and getattr(existing_alloc_resp, 'data', None):
+        for item in existing_alloc_resp.data:
+            app_data = item.get("application")
+            if app_data:
+                already_allotted_student_ids.add(app_data.get("student_id"))
+
+    unallotted = [a for a in all_apps if a["student_id"] not in already_allotted_student_ids]
 
     total_allocated    = 0
     reserved_allocated = 0
@@ -144,14 +166,27 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     today_str          = str(date.today())
 
     # 5. PHASE 1 — Reserved seat allocation
-    cat_resp = await asyncio.to_thread(lambda: supabase_admin.table("benefit_category").select("id").eq("is_active", True).execute())
-    active_cat_ids = [c["id"] for c in (getattr(cat_resp, 'data', None) or [])]
+    cat_resp = await asyncio.to_thread(lambda: supabase_admin.table("benefit_category").select("*").eq("is_active", True).execute())
+    active_categories = getattr(cat_resp, 'data', None) or []
+    active_cat_map = {c["id"]: c for c in active_categories}
 
-    reserved_candidates = [
-        a for a in unallotted
-        if any(cat_id in (a.get("selected_category_ids") or []) for cat_id in active_cat_ids)
-        or a.get("pwd_status") or a.get("bpl_status") or a.get("sc_st_status")
-    ]
+    # Identify candidates with any active reservation benefit
+    reserved_candidates = []
+    for app in unallotted:
+        has_benefit = False
+        selected_ids = app.get("selected_category_ids") or []
+        
+        # Check dynamic categories
+        if any(cid in active_cat_map for cid in selected_ids):
+            has_benefit = True
+        
+        # Fallback for legacy columns
+        if not has_benefit and (app.get("pwd_status") or app.get("bpl_status") or app.get("sc_st_status")):
+            has_benefit = True
+            
+        if has_benefit:
+            reserved_candidates.append(app)
+
     reserved_candidates.sort(key=lambda a: -a.get("merit_score", 0))
 
     allocations_to_insert = []
@@ -160,29 +195,33 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         if total_allocated >= reserved_seats:
             break
 
-        category = "Reserved"
-        cats = app.get("selected_category_ids")
-        if cats and isinstance(cats, list) and len(cats) > 0:
-            category = f"Reserved_Cat_{cats[0]}"
-        elif app.get("pwd_status"):   category = "Reserved_PWD"
-        elif app.get("bpl_status"):   category = "Reserved_BPL"
-        elif app.get("sc_st_status"): category = "Reserved_SCST"
+        # Determine category label for the manifest
+        category_label = "Reserved"
+        selected_ids = app.get("selected_category_ids") or []
+        
+        # Priority: First matched dynamic category
+        matched_cat = next((active_cat_map[cid] for cid in selected_ids if cid in active_cat_map), None)
+        if matched_cat:
+            category_label = f"Reserved ({matched_cat['code']})"
+        elif app.get("pwd_status"):   category_label = "Reserved (PWD)"
+        elif app.get("bpl_status"):   category_label = "Reserved (BPL)"
+        elif app.get("sc_st_status"): category_label = "Reserved (SC/ST)"
 
         allocations_to_insert.append({
             "application_id": app["application_id"],
             "hostel_id":       hostel_id,
             "allocation_date": today_str,
             "status":          "Active",
-            "category":        category
+            "category":        category_label
         })
-        already_allotted.add(app["application_id"])
+        already_allotted_student_ids.add(app["student_id"])
         total_allocated += 1
         reserved_allocated += 1
 
     # 6. PHASE 2 — General seat allocation
     remaining_seats = total_capacity - total_allocated
     general_candidates = sorted(
-        [a for a in unallotted if a["application_id"] not in already_allotted],
+        [a for a in unallotted if a["student_id"] not in already_allotted_student_ids],
         key=lambda a: -a.get("merit_score", 0)
     )
 
@@ -214,4 +253,6 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         "total_allocated":   total_allocated,
         "reserved_allocated": reserved_allocated,
         "general_allocated": general_allocated,
+        "message": f"Successfully processed {total_allocated} allotments."
     }
+

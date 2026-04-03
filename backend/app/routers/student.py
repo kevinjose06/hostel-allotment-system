@@ -83,13 +83,30 @@ async def update_profile(
     if not updates:
         raise HTTPException(status_code=400, detail="No fields to update")
 
-    resp = (
-        supabase_admin.table("student")
-        .update(updates)
-        .eq("auth_uid", user.id)
-        .execute()
-    )
-    return success_response("Profile updated", resp.data[0] if resp.data else None)
+    # Separating generic student fields from academic/merit fields
+    academic_fields = ['family_annual_income', 'distance_from_college', 'bpl_status', 'pwd_status', 'sc_st_status']
+    student_updates = {k: v for k, v in updates.items() if k not in academic_fields}
+    merit_updates = {k: v for k, v in updates.items() if k in academic_fields}
+
+    # 1. Update Student Basic Info
+    if student_updates:
+        supabase_admin.table("student").update(student_updates).eq("auth_uid", user.id).execute()
+
+    # 2. Update Student Academics & Active Application
+    if merit_updates:
+        student_id = _get_student_id(user.id)
+        # Persistent storage in academics table
+        supabase_admin.table("student_academics").upsert({"student_id": student_id, **merit_updates}).execute()
+        
+        # Session-specific update (if application exists for current year)
+        # Fetch current config year
+        cfg_resp = supabase_admin.table("system_config").select("config_value").eq("config_key", "academic_year").execute()
+        active_year = cfg_resp.data[0]["config_value"] if cfg_resp.data else None
+        
+        if active_year:
+            supabase_admin.table("application").update(merit_updates).eq("student_id", student_id).eq("academic_year", active_year).execute()
+
+    return success_response("Profile and associated application updated")
 
 
 # ── PUT /api/v1/student/academics ────────────────────────────────────────────
@@ -107,6 +124,7 @@ async def update_academics(
         .execute()
     )
     return success_response("Academics updated", resp.data[0] if resp.data else None)
+
 
 
 # ── GET /api/v1/student/classes ──────────────────────────────────────────────

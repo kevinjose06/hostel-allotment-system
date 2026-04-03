@@ -256,7 +256,7 @@ export default function ApplicationPage() {
             </div>
 
             <div className="space-y-6 pt-4 border-t border-surface-container/50">
-              <label className="form-label mb-4">Reservation Attributes</label>
+              <label className="form-label mb-4">Reservation Attributes (Optional)</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {activeCategories.map(cat => (
                   <label key={cat.id} className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
@@ -284,29 +284,16 @@ export default function ApplicationPage() {
                   </label>
                 ))}
 
-                {/* Legacy Columns (Optional UI fallback) */}
-                {!activeCategories.some(c => c.code === 'PWD') && (
-                  <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
-                    <input {...register('pwd_status')} type="checkbox" className="w-5 h-5 accent-primary" />
-                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">PWD Status</span>
-                  </label>
-                )}
-                {!activeCategories.some(c => c.code === 'BPL') && (
-                  <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-secondary transition-all group">
-                    <input {...register('bpl_status')} type="checkbox" className="w-5 h-5 accent-secondary" />
-                    <span className="text-sm font-semibold text-on-surface group-hover:text-secondary transition-colors">BPL Status</span>
-                  </label>
-                )}
-                {!activeCategories.some(c => c.code === 'SCST') && (
-                   <label className="flex items-center gap-4 p-4 bg-surface rounded-md border border-outline-variant/10 cursor-pointer hover:border-primary transition-all group">
-                    <input {...register('sc_st_status')} type="checkbox" className="w-5 h-5 accent-primary" />
-                    <span className="text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">SC/ST status</span>
-                  </label>
+                {activeCategories.length === 0 && (
+                  <p className="col-span-full py-4 text-center text-sm text-on-surface-variant italic">
+                    No active reservation categories configured.
+                  </p>
                 )}
               </div>
             </div>
           </div>
         </section>
+
 
         {/* 3. Statutory Documents & Certificates */}
         <section className="card p-0 overflow-hidden">
