@@ -188,23 +188,35 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     # 3. Compute merit scores and update DB
     all_apps = _compute_merit_scores(all_apps)
 
-    # Performance Update: Use asyncio.gather in batches to avoid Cloudflare 502 Bad Gateway timeouts
-    print(f"Updating merit scores for {len(all_apps)} applications concurrently...")
+    import httpx
+    # Performance Update: Use httpx.AsyncClient completely asynchronously to avoid OS thread limit exhaustion [Errno 11]
+    print(f"Updating merit scores for {len(all_apps)} applications concurrently without threads...")
     
-    async def update_app(a_to_update):
-        await asyncio.to_thread(
-            lambda: supabase_admin.table("application")
-            .update({"merit_score": a_to_update["merit_score"]})
-            .eq("application_id", a_to_update["application_id"])
-            .execute()
-        )
+    supabase_url = supabase_admin.supabase_url
+    supabase_key = supabase_admin.supabase_key
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {supabase_key}",
+        "Content-Type": "application/json",
+        "Prefer": "return=minimal"
+    }
 
-    chunk_size = 50
-    for i in range(0, len(all_apps), chunk_size):
-        chunk = all_apps[i:i + chunk_size]
-        tasks = [update_app(a) for a in chunk if a.get("application_id")]
-        if tasks:
-            await asyncio.gather(*tasks)
+    async def update_app(client, a_to_update):
+        app_id = a_to_update["application_id"]
+        url = f"{supabase_url}/rest/v1/application?application_id=eq.{app_id}"
+        payload = {"merit_score": a_to_update["merit_score"]}
+        try:
+            await client.patch(url, headers=headers, json=payload, timeout=20.0)
+        except Exception as e:
+            print(f"Failed to update score for app {app_id}: {e}")
+
+    chunk_size = 100
+    async with httpx.AsyncClient() as client:
+        for i in range(0, len(all_apps), chunk_size):
+            chunk = all_apps[i:i + chunk_size]
+            tasks = [update_app(client, a) for a in chunk if a.get("application_id")]
+            if tasks:
+                await asyncio.gather(*tasks)
 
     print("[SYNC] Merit scores synchronized.")
 
