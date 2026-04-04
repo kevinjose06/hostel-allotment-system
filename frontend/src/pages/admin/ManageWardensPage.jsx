@@ -276,9 +276,11 @@ export default function ManageWardensPage() {
                 onChange={e => setFormData({ ...formData, hostel_id: e.target.value })}
                 className="input w-full px-4 h-12 bg-white"
               >
-                <option value="">Select Hostel</option>
+                <option value="">Select Assignment...</option>
                 {hostels.map(h => (
-                  <option key={h.hostel_id} value={h.hostel_id}>{h.hostel_name}</option>
+                  <option key={h.hostel_id} value={h.hostel_id}>
+                    Assign to: {h.hostel_name} ({h.hostel_type === 'MH' ? "Mens" : "Ladies"})
+                  </option>
                 ))}
               </select>
             </div>

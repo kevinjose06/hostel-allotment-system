@@ -6,12 +6,20 @@ import { Building2, FileText, CheckSquare, ListOrdered, UserX } from 'lucide-rea
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 
 export default function WardenDashboard() {
-  const { data: hostels = [], isLoading } = useQuery({
+  const { data: wardenProfile, isLoading: isProfileLoading } = useQuery({
+    queryKey: ['warden-me'],
+    queryFn: () => api.get('/admin/warden/me').then(r => r.data.data)
+  });
+
+  const { data: hostels = [], isLoading: isHostelsLoading } = useQuery({
     queryKey: ['hostels'],
     queryFn: () => api.get('/hostel').then(r => r.data.data)
   });
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isProfileLoading || isHostelsLoading) return <LoadingSpinner />;
+
+  // Filter hostels to only show the one assigned to this warden
+  const filteredHostels = hostels.filter(h => h.hostel_id === wardenProfile?.hostel_id);
 
   return (
     <div className="space-y-10">
@@ -79,7 +87,13 @@ export default function WardenDashboard() {
           <h2 className="font-sans font-bold text-primary uppercase tracking-widest text-xs">Hostel Overview</h2>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {hostels.map(h => <HostelOccupancyCard key={h.hostel_id} hostel={h} />)}
+          {filteredHostels.length > 0 ? (
+            filteredHostels.map(h => <HostelOccupancyCard key={h.hostel_id} hostel={h} />)
+          ) : (
+            <div className="lg:col-span-2 p-12 bg-surface-container-lowest border border-outline-variant/10 rounded-md text-center italic text-on-surface-variant">
+              No hostel assigned to your profile yet. Please contact the administrator.
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Building2, Plus, Loader2, Pencil } from 'lucide-react';
+import { Building2, Plus, Loader2, Pencil, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { adminService } from '../../services/adminService';
 import Modal from '../../components/Modal';
+import api from '../../services/api';
 
-const emptyForm = { hostel_name: '', hostel_type: 'MH', total_capacity: '', reserved_seats: '', warden_id: '' };
+const emptyForm = { hostel_name: '', hostel_type: 'MH', total_capacity: '', warden_id: '' };
 
 export default function ManageHostelsPage() {
   const [hostels, setHostels] = useState([]);
   const [wardens, setWardens] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [resPercent, setResPercent] = useState(20);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHostel, setEditingHostel] = useState(null);
@@ -19,6 +21,10 @@ export default function ManageHostelsPage() {
   useEffect(() => { 
     fetchHostels(); 
     fetchWardens();
+    api.get('/admin/config').then(r => {
+      const pct = parseInt(r.data.data?.reservation_percentage || 20);
+      setResPercent(pct);
+    }).catch(() => {});
   }, []);
 
   const fetchHostels = async () => {
@@ -52,7 +58,6 @@ export default function ManageHostelsPage() {
       hostel_name: h.hostel_name,
       hostel_type: h.hostel_type,
       total_capacity: h.total_capacity,
-      reserved_seats: h.reserved_seats,
       warden_id: h.warden_id || ''
     });
     setIsModalOpen(true);
@@ -66,8 +71,7 @@ export default function ManageHostelsPage() {
     const payload = {
       hostel_name: form.hostel_name,
       hostel_type: form.hostel_type,
-      total_capacity: parseInt(form.total_capacity),
-      reserved_seats: parseInt(form.reserved_seats)
+      total_capacity: parseInt(form.total_capacity)
     };
     try {
       let hostelId;
@@ -181,14 +185,16 @@ export default function ManageHostelsPage() {
             </select>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Total Capacity *</label>
               <input name="total_capacity" type="number" min="1" value={form.total_capacity} onChange={handleChange} required className={inputClass} />
             </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase tracking-widest text-primary mb-1">Reserved Seats *</label>
-              <input name="reserved_seats" type="number" min="0" value={form.reserved_seats} onChange={handleChange} required className={inputClass} />
+            <div className="flex items-start gap-2 p-3 rounded-md bg-primary/5 border border-primary/15">
+              <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              <p className="text-[11px] text-on-surface-variant leading-relaxed">
+                <span className="font-bold text-primary">Reserved seats</span> are calculated automatically from the system-wide reservation percentage (<span className="font-bold">{resPercent}%</span>). For this hostel, that would be <span className="font-bold text-primary">{form.total_capacity ? Math.round(parseInt(form.total_capacity) * resPercent / 100) : 0} seats</span>. Change this in System Settings.
+              </p>
             </div>
           </div>
 
