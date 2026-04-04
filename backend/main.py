@@ -1,7 +1,9 @@
 import os
+from dotenv import load_dotenv
+load_dotenv()  # Load variables before any local imports
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 from app.routers import (
     auth,
@@ -13,8 +15,6 @@ from app.routers import (
     hostel,
     document,
 )
-
-load_dotenv()
 
 app = FastAPI(
     title="RIT Hostel Allotment API",
