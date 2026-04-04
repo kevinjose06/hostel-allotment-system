@@ -1,3 +1,4 @@
+from typing import Optional, Any
 from fastapi import APIRouter, Depends, HTTPException
 from app.config.supabase import supabase_admin
 from app.middleware.auth import require_role
@@ -287,8 +288,46 @@ async def get_dashboard_stats(
         query = query.eq("status", status)
     if academic_year:
         query = query.eq("academic_year", academic_year)
-    if hostel_id:
-        query = query.eq("hostel_id", hostel_id)
+    
+    # ── Role-Based Application Filtering ─────────────────────────────────────
+    role = (user.user_metadata or {}).get("role", "student")
+    
+    # Determine which gender filter to apply
+    target_hostel_id = hostel_id
+    
+    # If the user is a Warden, they are STRICTLY limited to their assigned hostel's gender
+    if role == "warden":
+        # Force the hostel lookup to be for the logged-in warden
+        warden_resp = (
+            supabase_admin.table("warden")
+            .select("hostel_id")
+            .eq("auth_uid", user.id)
+            .maybe_single()
+            .execute()
+        )
+        if warden_resp.data:
+            target_hostel_id = warden_resp.data["hostel_id"]
+        else:
+            # Security: If warden record missing, show zero applications
+            query = query.eq("application_id", -1)
+            target_hostel_id = None
+
+    # Apply gender filter based on the target hostel (determined above)
+    if target_hostel_id:
+        hostel_resp = (
+            supabase_admin.table("hostel")
+            .select("hostel_type")
+            .eq("hostel_id", target_hostel_id)
+            .maybe_single()
+            .execute()
+        )
+        if hostel_resp.data:
+            h_type = hostel_resp.data["hostel_type"]
+            gender_filter = "Female" if h_type == "LH" else "Male"
+            query = query.eq("gender", gender_filter)
+        elif role == "warden" or hostel_id:
+            # If a specific filter was requested but hostel not found, return empty
+            query = query.eq("application_id", -1) 
         
     applications = query.order("merit_score", desc=True).execute()
     allocations = (

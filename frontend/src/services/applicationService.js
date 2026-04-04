@@ -94,29 +94,8 @@ export const applicationService = {
       selected_category_ids: applicationData.selected_category_ids || []
     });
 
-    // 3. Save document metadata into student_document table (Internal Upsert)
-    if (uploadedDocs.length > 0) {
-      const docRows = uploadedDocs.map(d => ({
-        student_id: student.student_id,
-        document_type: d.docType,
-        file_path: d.path,
-        verification_status: 'Pending',
-      }));
-      await supabase.from('student_document').upsert(docRows, { onConflict: 'student_id,document_type' });
-    }
-  
-    // 4. Upsert student_academics from snapshot
-    await supabase.from('student_academics').upsert({
-      student_id: student.student_id,
-      year_of_study: student.class?.year || 1,
-      family_annual_income: applicationData.family_annual_income,
-      distance_from_college: applicationData.distance_from_college,
-      bpl_status: applicationData.bpl_status || false,
-      pwd_status: applicationData.pwd_status || false,
-      sc_st_status: applicationData.sc_st_status || false,
-      selected_category_ids: applicationData.selected_category_ids || []
-    }, { onConflict: 'student_id' });
-
+    // 3. Document metadata is handled by the backend's parallel tasks or can be managed
+    // separately via document-specific endpoints. For now, we rely on the main submission trace.
     return response.data.data;
   },
 
@@ -172,17 +151,7 @@ export const applicationService = {
       selected_category_ids: applicationData.selected_category_ids || []
     });
 
-    // 3. Save document metadata into student_document table (Internal Upsert)
-    if (uploadedDocs.length > 0) {
-      const docRows = uploadedDocs.map(d => ({
-        student_id: student.student_id,
-        document_type: d.docType,
-        file_path: d.path,
-        verification_status: 'Pending',
-      }));
-      await supabase.from('student_document').upsert(docRows, { onConflict: 'student_id,document_type' });
-    }
-
+    // 3. Document metadata update is handled by the backend's parallel tasks.
     return response.data.data;
   },
 

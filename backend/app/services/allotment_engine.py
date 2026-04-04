@@ -80,6 +80,45 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     hostel_type    = hostel.get("hostel_type", "MH")
     total_capacity = hostel.get("total_capacity", 0)
     
+    # Robust cleanup: Fetch all active allocations for the target hostel,
+    # then filter in Python by academic year to identify candidates for deletion.
+    print(f"[CLEANUP] Identifying stale allocations for Hostel {hostel_id}...")
+    
+    # We fetch with application to check the year, but we'll use a simpler select
+    # and handle the join logic in Python to avoid PostgREST relationship issues.
+    raw_allocs = await asyncio.to_thread(
+        lambda: supabase_admin.table("allocation")
+        .select("allocation_id, application_id, application(academic_year)")
+        .eq("hostel_id", hostel_id)
+        .eq("status", "Active")
+        .execute()
+    )
+    
+    ids_to_del = []
+    if raw_allocs and getattr(raw_allocs, 'data', None):
+        for item in raw_allocs.data:
+            app_data = item.get("application")
+            # Handle both list and dict formats from Supabase response
+            if isinstance(app_data, list) and len(app_data) > 0:
+                app_data = app_data[0]
+            
+            if isinstance(app_data, dict):
+                ay = str(app_data.get("academic_year", "")).strip()
+                if ay == academic_year.strip():
+                    ids_to_del.append(item["allocation_id"])
+
+    if ids_to_del:
+        print(f"[CLEANUP] Deleting {len(ids_to_del)} existing allocations for {academic_year}...")
+        await asyncio.to_thread(
+            lambda: supabase_admin.table("allocation")
+            .delete()
+            .in_("allocation_id", ids_to_del)
+            .execute()
+        )
+        print(f"[CLEANUP] Cleaned up {len(ids_to_del)} stale allocations.")
+    else:
+        print("[CLEANUP] No stale allocations found for this year.")
+
     import math
     reserved_seats = math.floor(total_capacity * (res_percent / 100))
     gender_filter  = "Female" if hostel_type == "LH" else "Male"
@@ -125,40 +164,46 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
             "message": f"No approved {gender_filter} applications found for {academic_year}."
         }
 
-    # 3. Compute merit scores and update DB (Parallel)
+    # 3. Compute merit scores and update DB
     all_apps = _compute_merit_scores(all_apps)
 
-    async def update_merit(app):
-        return await asyncio.to_thread(
-            lambda: supabase_admin.table("application")
-            .update({"merit_score": app["merit_score"]})
-            .eq("application_id", app["application_id"])
-            .execute()
-        )
-    await asyncio.gather(*(update_merit(app) for app in all_apps))
+    # Security Update: Use individual updates to bypass NOT NULL constraints on other columns
+    print(f"Updating merit scores for {len(all_apps)} applications...")
+    for a in all_apps:
+        if a.get("application_id"):
+            await asyncio.to_thread(
+                lambda: supabase_admin.table("application")
+                .update({"merit_score": a["merit_score"]})
+                .eq("application_id", a["application_id"])
+                .execute()
+            )
+    print("[SYNC] Merit scores synchronized.")
 
-    # 4. Filter already allotted
-    # Security Update: We check if the STUDENT (not just this application) 
-    # has any existing allocation for the target academic year.
-    all_student_ids = [a["student_id"] for a in all_apps]
-    
-    # We join with application to verify the academic_year of the existing allocation
-    existing_alloc_resp = await asyncio.to_thread(
+    # 4. Filter already allotted students across ALL hostels for this academic year
+    # We fetch all active allocations and their associated applications to check the year in Python.
+    print(f"[SYNC] Checking for existing active allocations in {academic_year}...")
+    raw_active = await asyncio.to_thread(
         lambda: supabase_admin.table("allocation")
-        .select("application!inner(student_id, academic_year)")
-        .eq("application.academic_year", academic_year)
+        .select("allocation_id, application_id, application(student_id, academic_year)")
         .eq("status", "Active")
         .execute()
     )
     
     already_allotted_student_ids = set()
-    if existing_alloc_resp and getattr(existing_alloc_resp, 'data', None):
-        for item in existing_alloc_resp.data:
+    if raw_active and getattr(raw_active, 'data', None):
+        for item in raw_active.data:
             app_data = item.get("application")
-            if app_data:
-                already_allotted_student_ids.add(app_data.get("student_id"))
+            if isinstance(app_data, list) and len(app_data) > 0:
+                app_data = app_data[0]
+            
+            if isinstance(app_data, dict):
+                ay = str(app_data.get("academic_year", "")).strip()
+                if ay == academic_year.strip():
+                    already_allotted_student_ids.add(app_data.get("student_id"))
 
+    print(f"[SYNC] Found {len(already_allotted_student_ids)} students already allotted for {academic_year}.")
     unallotted = [a for a in all_apps if a["student_id"] not in already_allotted_student_ids]
+
 
     total_allocated    = 0
     reserved_allocated = 0
@@ -195,24 +240,25 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         if total_allocated >= reserved_seats:
             break
 
-        # Determine category label for the manifest
-        category_label = "Reserved"
+        # Determine the exact Enum Label for the database
+        # Forensic verification: Found labels are "Reserved_PWD" and "General"
+        category_enum = "General"
         selected_ids = app.get("selected_category_ids") or []
         
         # Priority: First matched dynamic category
         matched_cat = next((active_cat_map[cid] for cid in selected_ids if cid in active_cat_map), None)
         if matched_cat:
-            category_label = f"Reserved ({matched_cat['code']})"
-        elif app.get("pwd_status"):   category_label = "Reserved (PWD)"
-        elif app.get("bpl_status"):   category_label = "Reserved (BPL)"
-        elif app.get("sc_st_status"): category_label = "Reserved (SC/ST)"
+            category_enum = f"Reserved_{matched_cat['code']}"
+        elif app.get("pwd_status"):   category_enum = "Reserved_PWD"
+        elif app.get("bpl_status"):   category_enum = "Reserved_BPL"
+        elif app.get("sc_st_status"): category_enum = "Reserved_SCST"
 
         allocations_to_insert.append({
             "application_id": app["application_id"],
             "hostel_id":       hostel_id,
             "allocation_date": today_str,
             "status":          "Active",
-            "category":        category_label
+            "category":        category_enum
         })
         already_allotted_student_ids.add(app["student_id"])
         total_allocated += 1
@@ -239,12 +285,12 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         general_allocated += 1
         remaining_seats -= 1
 
-    # 7. Finalize insertions (Parallel)
-    async def insert_alloc(alloc):
-        return await asyncio.to_thread(lambda: supabase_admin.table("allocation").insert(alloc).execute())
-    
+    # 7. Finalize insertions in bulk
     if allocations_to_insert:
-        await asyncio.gather(*(insert_alloc(a) for a in allocations_to_insert))
+        await asyncio.to_thread(
+            lambda: supabase_admin.table("allocation").insert(allocations_to_insert).execute()
+        )
+
 
     return {
         "hostel_id":         hostel_id,

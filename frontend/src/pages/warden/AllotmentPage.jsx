@@ -10,11 +10,15 @@ export default function AllotmentPage() {
   const [academicYear, setAcademicYear] = useState('');
   const [selectedHostel, setSelectedHostel] = useState('');
   const [result, setResult] = useState(null);
-
+  
   const { data: configs } = useQuery({
     queryKey: ['system-configs'],
     queryFn: () => api.get('/admin/config').then(r => r.data.data)
   });
+
+  const deadline = configs?.application_deadline;
+  const isDeadlinePassed = deadline ? new Date() > new Date(deadline) : false;
+
 
   const { data: wardenProfile, isLoading: isProfileLoading } = useQuery({
     queryKey: ['warden-me'],
@@ -134,16 +138,28 @@ export default function AllotmentPage() {
           </div>
 
           {/* Action Button */}
-          <button
-            onClick={() => allotmentMutation.mutate()}
-            disabled={!selectedHostel || allotmentMutation.isPending}
-            className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest text-xs rounded-md shadow-ambient transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-          >
-            {allotmentMutation.isPending
-              ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />  Processing...</>
-              : <><Sparkles className="w-4 h-4" />  Run Allotment</>
-            }
-          </button>
+          <div className="space-y-4">
+            {!isDeadlinePassed && (
+              <div className="flex items-start gap-3 p-4 bg-secondary/5 border border-secondary/20 rounded-md">
+                <AlertTriangle className="h-5 w-5 text-secondary shrink-0 mt-0.5" />
+                <div className="text-xs text-on-surface-variant leading-relaxed">
+                  <p className="font-bold text-secondary uppercase tracking-widest mb-1">Applications Still Open</p>
+                  The allotment engine cannot be started while the application window is still open. 
+                  Please wait until after the deadline (<strong>{deadline ? new Date(deadline).toLocaleString() : 'Loading...'}</strong>) to process assignments.
+                </div>
+              </div>
+            )}
+            <button
+              onClick={() => allotmentMutation.mutate()}
+              disabled={!selectedHostel || allotmentMutation.isPending || !isDeadlinePassed}
+              className="w-full py-4 bg-primary hover:bg-primary/90 text-white font-bold uppercase tracking-widest text-xs rounded-md shadow-ambient transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+            >
+              {allotmentMutation.isPending
+                ? <><span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />  Processing...</>
+                : <><Sparkles className="w-4 h-4" />  Run Allotment</>
+              }
+            </button>
+          </div>
         </div>
       </div>
 

@@ -39,8 +39,8 @@ export default function WardenDashboard() {
           <div className="p-5 bg-primary/10 text-primary border border-primary/20 rounded-md mb-6 shrink-0">
              <FileText className="w-8 h-8" />
           </div>
-          <p className="font-serif text-2xl font-bold text-primary mb-2">View Results</p>
-          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">See the full list of room assignments, category-wise allocation results, and individual student details.</p>
+          <p className="font-serif text-2xl font-bold text-primary mb-2">View Applications</p>
+          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">See the full list of applications submitted.</p>
           <Link to="/warden/applications" className="font-bold uppercase tracking-widest text-[11px] w-full py-3.5 bg-surface-container-low text-on-surface hover:bg-surface-container border border-outline-variant/30 rounded-md transition-colors block">
             Review Documents
           </Link>

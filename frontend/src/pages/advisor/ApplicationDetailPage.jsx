@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import StatusBadge from '../../components/shared/StatusBadge';
@@ -10,6 +11,7 @@ import { User, MapPin, IndianRupee, HandHeart, Check, X, RotateCcw, FileText, Ex
 export default function ApplicationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userRole } = useAuth();
   const qc = useQueryClient();
   const [remarks, setRemarks] = useState('');
   const [showRejectForm, setShowRejectForm] = useState(false);
@@ -44,6 +46,8 @@ export default function ApplicationDetailPage() {
   if (!app) return <div>Application not found</div>;
 
   const s = Array.isArray(app.student) ? app.student[0] : app.student;
+  const isAdvisor = userRole === 'advisor';
+  const showActionPanel = isAdvisor && app.status === 'Pending';
 
   return (
     <div className="max-w-5xl mx-auto space-y-8">
@@ -54,8 +58,13 @@ export default function ApplicationDetailPage() {
           </h1>
           <p className="font-sans text-on-surface-variant mt-2 text-base">Review the student's details before approving or rejecting.</p>
         </div>
-        <div className="shrink-0">
+        <div className="shrink-0 flex flex-col items-end gap-2">
           <StatusBadge status={app.status} />
+          {!isAdvisor && (
+            <span className="px-3 py-1 bg-surface-container-high text-on-surface-variant font-bold text-[10px] tracking-widest uppercase rounded-sm border border-outline-variant/10">
+              Read-Only Mode
+            </span>
+          )}
         </div>
       </div>
 
@@ -227,7 +236,7 @@ export default function ApplicationDetailPage() {
         </div>
       )}
 
-      {app.status === 'Pending' && (
+      {showActionPanel && (
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 md:p-10 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
           <h3 className="font-serif text-2xl text-primary mb-8 pl-4">Action Panel</h3>

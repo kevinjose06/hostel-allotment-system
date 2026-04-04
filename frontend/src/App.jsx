@@ -47,11 +47,15 @@ export default function App() {
 
           </Route>
 
+          {/* Shared Detail Route (Read-Only for Admin/Warden) */}
+          <Route element={<ProtectedRoute allowedRoles={['advisor', 'admin', 'warden']} />}>
+            <Route path="/advisor/application/:id" element={<ApplicationDetailPage />} />
+          </Route>
+
           {/* Advisor Routes */}
           <Route element={<ProtectedRoute allowedRoles={['advisor']} />}>
             <Route path="/advisor/dashboard" element={<AdvisorDashboard />} />
             <Route path="/advisor/applications" element={<ApplicationsListPage />} />
-            <Route path="/advisor/application/:id" element={<ApplicationDetailPage />} />
           </Route>
 
           {/* Admin Routes */}
@@ -72,6 +76,7 @@ export default function App() {
             <Route path="/warden/results" element={<AllotmentResultsPage />} />
             <Route path="/warden/applications" element={<ApplicationsListPage isWarden />} />
           </Route>
+
 
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />

@@ -55,7 +55,9 @@ export default function SystemSettingsPage() {
     // If it's a deadline, ensure it's stored in ISO format
     let finalValue = value;
     if (key === 'application_deadline') {
-        finalValue = `${value}T23:59:59Z`;
+        // If picking '2026-04-06', store as '2026-04-06T00:00:00'
+        // This ensures it closes at the very start of the selected date in LOCAL time.
+        finalValue = `${value}T00:00:00`;
     }
     updateMutation.mutate({ config_key: key, config_value: finalValue });
   };

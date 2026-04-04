@@ -38,15 +38,30 @@ async def submit_application(
     student_res, config_res = await get_base_data()
     if not student_res or not getattr(student_res, 'data', None): raise HTTPException(status_code=404, detail="Student not found")
     
-    student_id = student_res.data["student_id"]
+    student_id = student_res.data.get("student_id")
     advisor_id = (student_res.data.get("class", {}) or {}).get("advisor_id")
-    if not advisor_id: raise HTTPException(status_code=400, detail="No advisor assigned to class.")
+    
+    print(f"DEBUG: Submitting application for Student ID: {student_id}, Advisor ID: {advisor_id}")
+
+    if not student_id: raise HTTPException(status_code=400, detail="Profile Incomplete: Student record not found.")
+    if not advisor_id: 
+        raise HTTPException(
+            status_code=400, 
+            detail="Your profile is not assigned to a Class/Advisor. Please contact the office."
+        )
 
     # 2. Check deadline and existing app
     async def check_rules():
         if config_res and getattr(config_res, 'data', None):
             from datetime import datetime
-            deadline = datetime.fromisoformat(config_res.data["config_value"].replace('Z', '+00:00'))
+            deadline_str = config_res.data["config_value"]
+            # Handle both 'Z' (UTC) and naive (Local) strings
+            if 'Z' in deadline_str:
+                deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+            else:
+                deadline = datetime.fromisoformat(deadline_str)
+            
+            # Use .astimezone() to ensure both side are aware and comparable in local time
             if datetime.now().astimezone() > deadline.astimezone(): return "deadline_ended"
         
         existing = await asyncio.to_thread(lambda: supabase_admin.table("application").select("application_id").eq("student_id", student_id).eq("academic_year", body.academic_year).maybe_single().execute())
@@ -131,7 +146,11 @@ async def resubmit_application(
         try:
             deadline_str = config_resp.data["config_value"]
             if isinstance(deadline_str, str):
-                deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+                if 'Z' in deadline_str:
+                    deadline = datetime.fromisoformat(deadline_str.replace('Z', '+00:00'))
+                else:
+                    deadline = datetime.fromisoformat(deadline_str)
+                
                 if datetime.now().astimezone() > deadline.astimezone():
                     raise HTTPException(
                         status_code=403,

@@ -47,6 +47,18 @@ export default function ApplicationsListPage({ isAdmin = false, isWarden = false
               }
             };
           }
+
+          // Fallback if student object doesn't exist but we have IDs
+          if (!app.student && app.college_id) {
+            return {
+              ...app,
+              student: {
+                first_name: app.first_name || 'Student',
+                last_name: app.last_name || '',
+                college_id: app.college_id
+              }
+            };
+          }
           
           // Standard advisor relation mapping
           return {
@@ -68,9 +80,11 @@ export default function ApplicationsListPage({ isAdmin = false, isWarden = false
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
         <div>
           <h1 className="font-serif text-4xl text-primary tracking-tight">
-            {isAdmin ? 'All Applications' : 'Class Applications'}
+            {isAdmin ? 'All Applications' : isWarden ? 'Applicant Review Dashboard' : 'Class Applications'}
           </h1>
-          <p className="font-sans text-on-surface-variant mt-2 text-base">Review student hostel applications.</p>
+          <p className="font-sans text-on-surface-variant mt-2 text-base">
+            {isWarden ? 'Review merit-based applications for your hostel gender category.' : 'Review student hostel applications.'}
+          </p>
         </div>
         <div className="inline-flex items-center px-4 py-1.5 rounded-sm border border-outline-variant/30 bg-surface-container-low text-primary font-bold text-xs uppercase tracking-widest shrink-0">
           Total Count: {filtered.length}
@@ -144,8 +158,13 @@ export default function ApplicationsListPage({ isAdmin = false, isWarden = false
                     <StatusBadge status={app.status} />
                   </td>
                   <td className="td text-right">
-                    {isAdmin ? (
-                      <span className="text-on-surface-variant text-[11px] font-bold uppercase tracking-widest border border-outline-variant/30 px-3 py-1.5 rounded-sm bg-surface-container-low">View Only</span>
+                    {(isAdmin || isWarden) ? (
+                      <Link
+                        to={`/advisor/application/${app.application_id}`}
+                        className="inline-flex font-bold text-[11px] uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors border border-outline-variant/30 px-3 py-1.5 rounded-sm bg-surface-container-low"
+                      >
+                        View Details
+                      </Link>
                     ) : (
                       <Link
                         to={`/advisor/application/${app.application_id}`}

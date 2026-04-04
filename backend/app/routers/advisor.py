@@ -10,6 +10,7 @@ from datetime import date
 router = APIRouter(prefix="/api/v1/advisor", tags=["Advisor"])
 
 _advisor = Depends(require_role(["advisor", "admin"]))
+_any_staff = Depends(require_role(["advisor", "admin", "warden"]))
 
 
 def _get_advisor_id(user_id: str) -> int:
@@ -74,23 +75,23 @@ async def get_my_applications(
 
 # ── GET /api/v1/advisor/application/{application_id} ───────────────────────
 @router.get("/application/{application_id}")
-async def get_application_detail(application_id: int, user=_advisor):
-    advisor_id = _get_advisor_id(user.id)
+async def get_application_detail(application_id: int, user=_any_staff):
+    # Base query
+    query = supabase_admin.table("application").select("""
+        *,
+        student (
+            college_id, first_name, last_name, gender, email, contact_number,
+            class ( degree_program, department, year, division )
+        )
+    """).eq("application_id", application_id)
 
-    resp = (
-        supabase_admin.table("application")
-        .select("""
-            *,
-            student (
-                college_id, first_name, last_name, gender, email, contact_number,
-                class ( degree_program, department, year, division )
-            )
-        """)
-        .eq("application_id", application_id)
-        .eq("advisor_id", advisor_id)
-        .single()
-        .execute()
-    )
+    # Ownership check only for Advisors (Admins and Wardens can see all)
+    if user.app_metadata.get("role") == "advisor":
+        advisor_id = _get_advisor_id(user.id)
+        query = query.eq("advisor_id", advisor_id)
+
+    resp = query.single().execute()
+
     app_data = resp.data
     if "student" not in app_data or not app_data["student"] or app_data["student"].get("first_name") == "BACKEND":
         # Force fetch the student directly if PostgREST nested join fails silently
@@ -274,7 +275,7 @@ async def return_application(
 
 # ── GET /api/v1/advisor/application/{application_id}/documents ───────────────
 @router.get("/application/{application_id}/documents")
-async def get_application_documents(application_id: int, user=_advisor):
+async def get_application_documents(application_id: int, user=_any_staff):
     # Get student_id from application
     app_resp = (
         supabase_admin.table("application")
