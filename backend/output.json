@@ -1,0 +1,24 @@
+{
+  "keys": [
+    "allocation_id",
+    "application_id",
+    "hostel_id",
+    "warden_id",
+    "allocation_date",
+    "status",
+    "category",
+    "created_at",
+    "updated_at"
+  ],
+  "values": {
+    "allocation_id": 537,
+    "application_id": 64,
+    "hostel_id": 1,
+    "warden_id": null,
+    "allocation_date": "2026-04-04",
+    "status": "Active",
+    "category": "Reserved_PWD",
+    "created_at": "2026-04-04T05:52:37.569968+00:00",
+    "updated_at": "2026-04-04T05:52:37.569968+00:00"
+  }
+}

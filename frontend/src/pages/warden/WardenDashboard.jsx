@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import api from '../../services/api';
 import HostelOccupancyCard from '../../components/shared/HostelOccupancyCard';
-import { Building2, FileText, CheckSquare, ListOrdered } from 'lucide-react';
+import { Building2, FileText, CheckSquare, ListOrdered, UserX } from 'lucide-react';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 
 export default function WardenDashboard() {
@@ -25,7 +25,7 @@ export default function WardenDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
         <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col items-center text-center hover:border-outline-variant/30 transition-colors">
           <div className="p-5 bg-secondary/10 text-secondary border border-secondary/20 rounded-md mb-6 shrink-0">
              <ListOrdered className="w-8 h-8" />
@@ -46,7 +46,18 @@ export default function WardenDashboard() {
           </Link>
         </div>
 
-        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col items-center text-center">
+        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col items-center text-center hover:border-outline-variant/30 transition-colors">
+          <div className="p-5 bg-amber-500/10 text-amber-700 border border-amber-500/20 rounded-md mb-6 shrink-0">
+             <UserX className="w-8 h-8" />
+          </div>
+          <p className="font-serif text-2xl font-bold text-primary mb-2">Manage Residents</p>
+          <p className="text-sm text-on-surface-variant mb-6 px-4 leading-relaxed">Mark passed-out or departing students as Vacated to free hostel seats for the next allotment.</p>
+          <Link to="/warden/residents" className="font-bold uppercase tracking-widest text-[11px] w-full py-3.5 bg-amber-600 text-white hover:bg-amber-700 rounded-md transition-colors block">
+            Manage Residents
+          </Link>
+        </div>
+
+        {/* <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col items-center text-center">
            <div className="mt-auto mb-auto w-full">
                <div className="flex justify-between items-center mb-4">
                  <span className="text-xs uppercase font-bold tracking-widest text-on-surface-variant">Auth Queue</span>
@@ -60,7 +71,7 @@ export default function WardenDashboard() {
                  No pending tasks at this moment.
                </p>
            </div>
-        </div>
+        </div> */}
       </div>
 
       <div>

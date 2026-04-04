@@ -80,6 +80,27 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     hostel_type    = hostel.get("hostel_type", "MH")
     total_capacity = hostel.get("total_capacity", 0)
     
+    # ── Count seats already occupied by students from OTHER academic years ──────
+    # These are students currently residing (Active) who have NOT passed out yet.
+    existing_active_resp = await asyncio.to_thread(
+        lambda: supabase_admin.table("allocation")
+        .select("allocation_id, application(academic_year)")
+        .eq("hostel_id", hostel_id)
+        .eq("status", "Active")
+        .execute()
+    )
+    occupied_by_others = 0
+    if existing_active_resp and getattr(existing_active_resp, 'data', None):
+        for item in existing_active_resp.data:
+            app_data = item.get("application")
+            if isinstance(app_data, list): app_data = app_data[0] if app_data else None
+            if isinstance(app_data, dict):
+                ay = str(app_data.get("academic_year", "")).strip()
+                if ay != academic_year.strip():
+                    occupied_by_others += 1
+    available_capacity = total_capacity - occupied_by_others
+    print(f"[CAPACITY] Total: {total_capacity}, Occupied by other years: {occupied_by_others}, Available: {available_capacity}")
+    
     # Robust cleanup: Fetch all active allocations for the target hostel,
     # then filter in Python by academic year to identify candidates for deletion.
     print(f"[CLEANUP] Identifying stale allocations for Hostel {hostel_id}...")
@@ -120,7 +141,7 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         print("[CLEANUP] No stale allocations found for this year.")
 
     import math
-    reserved_seats = math.floor(total_capacity * (res_percent / 100))
+    reserved_seats = math.floor(available_capacity * (res_percent / 100))
     gender_filter  = "Female" if hostel_type == "LH" else "Male"
 
     # 2. Fetch all approved applications for the correct academic year (with leniency)
@@ -265,7 +286,7 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
         reserved_allocated += 1
 
     # 6. PHASE 2 — General seat allocation
-    remaining_seats = total_capacity - total_allocated
+    remaining_seats = available_capacity - total_allocated
     general_candidates = sorted(
         [a for a in unallotted if a["student_id"] not in already_allotted_student_ids],
         key=lambda a: -a.get("merit_score", 0)

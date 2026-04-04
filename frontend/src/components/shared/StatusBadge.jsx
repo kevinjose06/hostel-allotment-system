@@ -7,6 +7,7 @@ const STATUS_COLORS = {
   Waitlisted:   'bg-surface-container-high text-on-surface-variant border-outline-variant/30',
   Active:       'bg-green-600/10 text-green-700 border-green-600/20',
   Cancelled:    'bg-surface-container-highest text-on-surface-variant border-outline-variant/30',
+  Vacated:      'bg-amber-500/10 text-amber-700 border-amber-500/20',
 };
 
 export default function StatusBadge({ status }) {

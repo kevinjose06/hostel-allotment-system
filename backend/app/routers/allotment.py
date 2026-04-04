@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
-from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Body
+from typing import Optional, List
 from app.config.supabase import supabase_admin
 from app.middleware.auth import require_role
 from app.schemas.allotment import AllotmentRequest, ComputeScoresRequest
@@ -84,6 +84,54 @@ async def cancel_allocation(allocation_id: int, user=_warden_admin):
     if not resp.data:
         raise HTTPException(status_code=404, detail="Allocation not found")
     return success_response("Allocation cancelled", resp.data[0])
+
+
+# ── GET /api/v1/allotment/residents ──────────────────────────────────────────
+# Returns all currently Active allocations for a hostel, optionally filtered by year
+@router.get("/residents")
+async def get_residents(hostel_id: Optional[int] = None, academic_year: Optional[str] = None, user=_warden_admin):
+    role = user.user_metadata.get("role")
+    target_hostel_id = hostel_id
+    
+    if role == "warden":
+        w_resp = supabase_admin.table("warden").select("hostel_id").eq("auth_uid", user.id).maybe_single().execute()
+        if not w_resp or not getattr(w_resp, 'data', None):
+            raise HTTPException(status_code=403, detail="Warden profile not found")
+        target_hostel_id = w_resp.data["hostel_id"]
+
+    query = (
+        supabase_admin.table("allocation")
+        .select("allocation_id, status, allocation_date, category, hostel_id, application(application_id, academic_year, student(student_id, first_name, middle_name, last_name, college_id, gender))")
+        .eq("status", "Active")
+        .order("allocation_date", desc=True)
+    )
+    if target_hostel_id:
+        query = query.eq("hostel_id", target_hostel_id)
+    resp = query.execute()
+    rows = resp.data or []
+    # Filter by academic_year in Python if provided
+    if academic_year:
+        def _year(row):
+            app = row.get("application")
+            if isinstance(app, list): app = app[0] if app else {}
+            return str((app or {}).get("academic_year", "")).strip()
+        rows = [r for r in rows if _year(r) == academic_year.strip()]
+    return success_response("Residents fetched", rows)
+
+
+# ── POST /api/v1/allotment/vacate ─────────────────────────────────────────────
+# Marks a list of allocation_ids as Vacated (student passed out / left hostel)
+@router.post("/vacate")
+async def vacate_allocations(allocation_ids: List[int] = Body(...), user=_warden_admin):
+    if not allocation_ids:
+        raise HTTPException(status_code=400, detail="No allocation IDs provided")
+    resp = (
+        supabase_admin.table("allocation")
+        .update({"status": "Vacated"})
+        .in_("allocation_id", allocation_ids)
+        .execute()
+    )
+    return success_response(f"Vacated {len(resp.data or [])} allocations", resp.data)
 
 
 # ── POST /api/v1/allotment/compute-scores ────────────────────────────────────

@@ -27,6 +27,7 @@ import SystemSettingsPage from './pages/admin/SystemSettingsPage';
 import WardenDashboard from './pages/warden/WardenDashboard';
 import AllotmentPage from './pages/warden/AllotmentPage';
 import AllotmentResultsPage from './pages/warden/AllotmentResultsPage';
+import ManageResidentsPage from './pages/warden/ManageResidentsPage';
 
 export default function App() {
   return (
@@ -75,6 +76,7 @@ export default function App() {
             <Route path="/warden/allotment" element={<AllotmentPage />} />
             <Route path="/warden/results" element={<AllotmentResultsPage />} />
             <Route path="/warden/applications" element={<ApplicationsListPage isWarden />} />
+            <Route path="/warden/residents" element={<ManageResidentsPage />} />
           </Route>
 
 
