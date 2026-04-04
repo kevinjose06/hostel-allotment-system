@@ -11,8 +11,14 @@ SUPABASE_ANON_KEY: str = os.environ["SUPABASE_ANON_KEY"]
 SUPABASE_SERVICE_ROLE_KEY: str = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
 
 # Monkeypatch the out-dated key validation regex in supabase-py 2.4.3
-# so it can accept the new non-JWT sb_publishable and sb_secret keys.
-supabase._sync.client.re.match = lambda *args, **kwargs: True
+# to return a real Match object instead of a boolean, preventing downstream crashes.
+import re
+_orig_match = re.match
+def _sb_safe_match(pattern, string, *args, **kwargs):
+    if string and (string.startswith("sb_") or "ey" in string):
+        return _orig_match(".*", string)
+    return _orig_match(pattern, string, *args, **kwargs)
+supabase._sync.client.re.match = _sb_safe_match
 
 # Public client — respects Row Level Security
 # Used for auth sign-in / sign-up operations

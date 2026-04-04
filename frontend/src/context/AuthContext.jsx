@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -72,10 +73,13 @@ export function AuthProvider({ children }) {
   };
 
   const sendPasswordResetEmail = async (email) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-    if (error) throw error;
+    // We use the centralized API service which already handles the base URL and versioning
+    try {
+      const { data } = await api.post('/auth/request-reset', { email });
+      return data;
+    } catch (err) {
+      throw err;
+    }
   };
 
   const updatePassword = async (newPassword) => {
