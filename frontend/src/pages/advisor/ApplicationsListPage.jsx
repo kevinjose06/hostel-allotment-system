@@ -5,6 +5,7 @@ import api from '../../services/api';
 import StatusBadge from '../../components/shared/StatusBadge';
 import MeritScoreBar from '../../components/shared/MeritScoreBar';
 import { Search } from 'lucide-react';
+import LoadingSpinner from '../../components/shared/LoadingSpinner';
 
 const STATUSES = ['All', 'Pending', 'Approved', 'Rejected', 'Returned'];
 
@@ -74,6 +75,9 @@ export default function ApplicationsListPage({ isAdmin = false, isWarden = false
     a.student?.college_id?.toLowerCase().includes(search.toLowerCase()) ||
     (a.student?.first_name + ' ' + a.student?.last_name).toLowerCase().includes(search.toLowerCase())
   );
+
+  if (isLoading) return <LoadingSpinner />;
+
 
   return (
     <div className="space-y-8">

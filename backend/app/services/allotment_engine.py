@@ -188,16 +188,24 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
     # 3. Compute merit scores and update DB
     all_apps = _compute_merit_scores(all_apps)
 
-    # Security Update: Use individual updates to bypass NOT NULL constraints on other columns
-    print(f"Updating merit scores for {len(all_apps)} applications...")
-    for a in all_apps:
-        if a.get("application_id"):
-            await asyncio.to_thread(
-                lambda: supabase_admin.table("application")
-                .update({"merit_score": a["merit_score"]})
-                .eq("application_id", a["application_id"])
-                .execute()
-            )
+    # Performance Update: Use asyncio.gather in batches to avoid Cloudflare 502 Bad Gateway timeouts
+    print(f"Updating merit scores for {len(all_apps)} applications concurrently...")
+    
+    async def update_app(a_to_update):
+        await asyncio.to_thread(
+            lambda: supabase_admin.table("application")
+            .update({"merit_score": a_to_update["merit_score"]})
+            .eq("application_id", a_to_update["application_id"])
+            .execute()
+        )
+
+    chunk_size = 50
+    for i in range(0, len(all_apps), chunk_size):
+        chunk = all_apps[i:i + chunk_size]
+        tasks = [update_app(a) for a in chunk if a.get("application_id")]
+        if tasks:
+            await asyncio.gather(*tasks)
+
     print("[SYNC] Merit scores synchronized.")
 
     # 4. Filter already allotted students across ALL hostels for this academic year
