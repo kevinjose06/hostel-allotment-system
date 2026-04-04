@@ -68,7 +68,7 @@ async def health_check():
 @app.get("/", tags=["Health"])
 async def root():
     return {
-        "project": "RGIT Hostel Allotment API",
+        "project": "RIT Hostel Allotment API",
         "docs": "/docs",
         "health": "/health"
     }

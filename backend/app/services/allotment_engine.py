@@ -1,5 +1,5 @@
 """
-Hostel Allotment Engine — RGIT Kottayam
+Hostel Allotment Engine — RIT Kottayam
 =========================================
 Implements the two-phase merit-based hostel allotment algorithm.
 

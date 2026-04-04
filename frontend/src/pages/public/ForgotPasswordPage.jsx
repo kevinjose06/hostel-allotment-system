@@ -1,11 +1,28 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import { Lock, Mail, Loader2, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useAuth } from '../../context/AuthContext';
+import { getFriendlyErrorMessage } from '../../utils/errorHelpers';
 
 export default function ForgotPasswordPage() {
-  const onSubmit = (e) => {
+  const { sendPasswordResetEmail } = useAuth();
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    toast.success('Demo: Password reset link sent to your email!');
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(email);
+      setSent(true);
+      toast.success('Password reset link sent to your email!');
+    } catch (err) {
+      toast.error(getFriendlyErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -40,24 +57,48 @@ export default function ForgotPasswordPage() {
 
           <div className="card">
             <div className="h-14 w-14 bg-surface-container flex items-center justify-center rounded-md mb-8">
-              <Lock className="w-6 h-6 text-primary" />
+              {sent ? <CheckCircle2 className="w-6 h-6 text-primary" /> : <Lock className="w-6 h-6 text-primary" />}
             </div>
             
-            <h2 className="font-serif text-2xl text-primary mb-3">Reset Password</h2>
+            <h2 className="font-serif text-2xl text-primary mb-3">
+              {sent ? "Check Your Email" : "Reset Password"}
+            </h2>
             <p className="text-sm text-on-surface-variant leading-relaxed mb-8">
-              Enter your registered email address and we will send you a secure link to reset your credentials.
+              {sent 
+                ? `A password recovery link has been sent to ${email}. Please follow the link to securely reset your credentials.`
+                : "Enter your registered email address and we will send you a secure link to reset your credentials."}
             </p>
 
-            <form onSubmit={onSubmit} className="space-y-6">
-              <div>
-                <label className="form-label">Email Address</label>
-                <input type="email" required className="input" placeholder="e.g. student@rit.ac.in" />
-              </div>
+            {!sent ? (
+              <form onSubmit={onSubmit} className="space-y-6">
+                <div>
+                  <label className="form-label">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant/40" />
+                    <input 
+                      type="email" 
+                      required 
+                      value={email}
+                      onChange={e => setEmail(e.target.value)}
+                      className="input pl-11" 
+                      placeholder="e.g. student@rit.ac.in" 
+                    />
+                  </div>
+                </div>
 
-              <button type="submit" className="btn-primary w-full py-3">
-                Send Reset Link
+                <button type="submit" disabled={loading} className="btn-primary w-full py-3 flex items-center justify-center gap-2">
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {loading ? 'Sending link...' : 'Send Reset Link'}
+                </button>
+              </form>
+            ) : (
+              <button 
+                onClick={() => setSent(false)} 
+                className="w-full py-3 border border-outline-variant rounded-md text-sm font-bold uppercase tracking-widest hover:bg-surface-container transition-colors"
+              >
+                Send Again
               </button>
-            </form>
+            )}
 
             <div className="mt-8 pt-6 border-t border-surface-container-highest text-center">
                <Link to="/login" className="text-on-surface-variant hover:text-primary transition-colors text-sm font-medium">

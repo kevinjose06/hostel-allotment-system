@@ -71,6 +71,18 @@ export function AuthProvider({ children }) {
     setLoading(false);
   };
 
+  const sendPasswordResetEmail = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) throw error;
+  };
+
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
   const getRedirectPath = (role) => {
     const paths = {
       admin: '/admin/dashboard',
@@ -83,7 +95,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{
-      user, userRole, loading, signInAs, signOut, getRedirectPath
+      user, userRole, loading, signInAs, signOut, getRedirectPath, sendPasswordResetEmail, updatePassword
     }}>
       {children}
     </AuthContext.Provider>

@@ -6,6 +6,7 @@ import ProtectedRoute from './components/layout/ProtectedRoute';
 import LoginPage from './pages/public/LoginPage';
 import RegisterPage from './pages/public/RegisterPage';
 import ForgotPasswordPage from './pages/public/ForgotPasswordPage';
+import ResetPasswordPage from './pages/public/ResetPasswordPage';
 
 import StudentDashboard from './pages/student/StudentDashboard';
 import StudentProfile from './pages/student/StudentProfile';
@@ -38,6 +39,7 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Student Routes */}
           <Route element={<ProtectedRoute allowedRoles={['student']} />}>
