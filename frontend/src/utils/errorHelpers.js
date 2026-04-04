@@ -36,8 +36,26 @@ export const getFriendlyErrorMessage = (error) => {
     return "Infrastructure connectivity error. Please check your internet connection.";
   }
 
+  // 5. Generic backend API errors (4xx/5xx)
+  if (error.response?.status >= 500) {
+    console.error("[SERVER ERROR]:", error);
+    return "An institutional server error occurred. Please try again later or contact the Hostel Office.";
+  }
+  if (error.response?.status === 422) {
+    const detail = error.response?.data?.detail;
+    if (Array.isArray(detail)) {
+      return detail.map(d => `${d.loc?.at(-1) || 'Field'}: ${d.msg}`).join('; ');
+    }
+    return typeof detail === 'string' ? detail : "Invalid submission. Please check your entries.";
+  }
+  if (error.response?.status === 400) {
+    const detail = error.response?.data?.detail;
+    return typeof detail === 'string' ? detail : "Invalid request. Please review your inputs.";
+  }
+
+  // 6. Suppress all other raw errors in production — log to console only
   console.error("[ERROR]:", error);
-  return error?.message || error?.error_description || String(error);
+  return "An unexpected error occurred. Please try again or contact the Hostel Office.";
 };
 
 

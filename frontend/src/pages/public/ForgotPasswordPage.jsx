@@ -51,7 +51,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={onSubmit} className="space-y-6">
               <div>
                 <label className="form-label">Email Address</label>
-                <input type="email" required className="input" placeholder="e.g. student@rgit.ac.in" />
+                <input type="email" required className="input" placeholder="e.g. student@rit.ac.in" />
               </div>
 
               <button type="submit" className="btn-primary w-full py-3">

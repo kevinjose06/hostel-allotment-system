@@ -86,5 +86,13 @@ export const studentService = {
 
     if (error) throw error;
     return data;
+  },
+
+  /**
+   * Fetches system configuration (academic year, application deadline, etc.)
+   */
+  async getSystemConfig() {
+    const response = await api.get('/student/config');
+    return response.data.data;
   }
 };

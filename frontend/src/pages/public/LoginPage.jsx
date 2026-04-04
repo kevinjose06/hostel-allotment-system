@@ -38,7 +38,7 @@ export default function LoginPage() {
             <img src={ritLogo} alt="RIT Kottayam" className="h-16 w-auto object-contain" />
           </div>
           <h1 className="font-serif text-5xl lg:text-6xl text-white tracking-tight leading-tight mb-6">
-            Rajiv Gandhi Institute of Technology
+            Rajiv Gandhi Institute of Technology, Kottayam
           </h1>
           <p className="font-sans text-primary-fixed-dim text-lg max-w-sm leading-relaxed">
             Centralized Hostel Allotment and Management System.
@@ -62,7 +62,7 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center mx-auto mb-6 bg-primary rounded-md p-4 shadow-md">
               <img src={ritLogo} alt="RIT Kottayam" className="h-14 w-auto object-contain" />
             </div>
-            <h1 className="font-serif text-3xl text-primary tracking-tight mt-4">RGIT Housing</h1>
+            <h1 className="font-serif text-3xl text-primary tracking-tight mt-4">RIT Housing</h1>
             <p className="font-sans text-sm text-on-surface-variant mt-2">Hostel Allotment System</p>
           </div>
 
@@ -84,7 +84,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 required
                 className="input py-3"
-                placeholder="e.g., student@rgit.ac.in"
+                placeholder="e.g., student@rit.ac.in"
               />
             </div>
 

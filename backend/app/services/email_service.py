@@ -25,7 +25,7 @@ async def send_application_status_email(
     smtp_host = os.getenv("SMTP_HOST")
     smtp_user = os.getenv("SMTP_USER")
     smtp_pass = os.getenv("SMTP_PASS")
-    email_from = os.getenv("EMAIL_FROM", "noreply@rgit.ac.in")
+    email_from = os.getenv("EMAIL_FROM", "noreply@rit.ac.in")
     frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
     if not smtp_host or not smtp_user or not smtp_pass:
@@ -37,7 +37,7 @@ async def send_application_status_email(
     html_body = f"""
     <div style="font-family: Arial, sans-serif; max-width: 560px; margin: auto;">
       <div style="background: #0D2B6B; padding: 24px; border-radius: 8px 8px 0 0;">
-        <h2 style="color: white; margin: 0;">RGIT Kottayam — Hostel Portal</h2>
+        <h2 style="color: white; margin: 0;">RIT Kottayam — Hostel Portal</h2>
       </div>
       <div style="padding: 24px; border: 1px solid #E5E7EB; border-top: none; border-radius: 0 0 8px 8px;">
         <p>Dear <strong>{student_name}</strong>,</p>

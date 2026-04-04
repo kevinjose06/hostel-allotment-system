@@ -4,7 +4,7 @@ export const mockDataStore = {
     college_id: 'KTE24CS079',
     first_name: 'John',
     last_name: 'Doe',
-    email: 'student@rgit.ac.in',
+    email: 'student@rit.ac.in',
     gender: 'Male',
     date_of_birth: '2004-05-15',
     contact_number: '9876543210',
@@ -44,7 +44,7 @@ export const mockDataStore = {
         college_id: 'KTE24CS079',
         first_name: 'John',
         last_name: 'Doe',
-        email: 'student@rgit.ac.in',
+        email: 'student@rit.ac.in',
         gender: 'Male',
         contact_number: '9876543210',
         class: { department: 'Computer Science' }
@@ -66,7 +66,7 @@ export const mockDataStore = {
         college_id: 'KTE24EC012',
         first_name: 'Jane',
         last_name: 'Smith',
-        email: 'jane@rgit.ac.in',
+        email: 'jane@rit.ac.in',
         gender: 'Female',
         contact_number: '9123456780',
         class: { department: 'Electronics' }

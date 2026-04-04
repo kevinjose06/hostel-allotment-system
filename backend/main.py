@@ -17,7 +17,7 @@ from app.routers import (
 load_dotenv()
 
 app = FastAPI(
-    title="RGIT Hostel Allotment API",
+    title="RIT Hostel Allotment API",
     description=(
         "Backend for the Hostel Admission and Allotment System, "
         "Rajiv Gandhi Institute of Technology, Kottayam."

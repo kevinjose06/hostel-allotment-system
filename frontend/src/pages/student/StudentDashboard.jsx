@@ -1,6 +1,7 @@
 import { useAuth } from '../../context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { applicationService } from '../../services/applicationService';
+import { studentService } from '../../services/studentService';
 import { FileText, Clock, User, CheckCircle2 } from 'lucide-react';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
 import { Link } from 'react-router-dom';
@@ -9,20 +10,22 @@ import StatusBadge from '../../components/shared/StatusBadge';
 export default function StudentDashboard() {
   const { user } = useAuth();
   
-  const { data: app, isLoading, isError } = useQuery({
+  const { data: app, isLoading: isAppLoading } = useQuery({
     queryKey: ['my-application'],
     queryFn: () => applicationService.getMyApplication()
   });
 
-  if (isLoading) return <LoadingSpinner />;
-  
-  if (isError) {
-    // If it's a genuine error (not a 404 handled by the service), show the error state
-    // But for most cases, we want to allow the dashboard to render the 'No Application' state
-    console.error("Dashboard data load failed, but continuing to render fallback UI");
-  }
+  const { data: config, isLoading: isConfigLoading } = useQuery({
+    queryKey: ['student-config'],
+    queryFn: () => studentService.getSystemConfig()
+  });
 
-  // Use a fallback or handle null 'app' in the render section below
+  const isLoading = isAppLoading || isConfigLoading;
+
+  if (isLoading) return <LoadingSpinner />;
+
+  const deadline = config?.application_deadline ? new Date(config.application_deadline) : null;
+  const isDeadlinePassed = deadline && new Date() > deadline;
 
   return (
     <div className="space-y-8">
@@ -34,6 +37,20 @@ export default function StudentDashboard() {
           <p className="font-sans text-primary-fixed-dim max-w-2xl leading-relaxed text-lg">
             Apply for hostel accommodation, track your application status, and manage your profile details.
           </p>
+          {deadline && (
+            <div className={`mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-sm border ${
+              isDeadlinePassed ? 'bg-error/10 border-error/20 text-error-container' : 'bg-white/10 border-white/20 text-white'
+            }`}>
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-bold uppercase tracking-wider">
+                {isDeadlinePassed ? 'Deadline Passed: ' : 'Application Deadline: '}
+                {deadline.toLocaleDateString('en-IN', { 
+                  day: 'numeric', month: 'short', year: 'numeric', 
+                  hour: '2-digit', minute: '2-digit', hour12: true 
+                })}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -55,9 +72,11 @@ export default function StudentDashboard() {
           <div className="flex flex-col sm:flex-row gap-4 mt-auto">
             <Link 
               to={app ? "/student/status" : "/student/apply"}
-              className={`btn-primary flex-1 ${!app ? 'w-full' : ''}`}
+              disabled={!app && isDeadlinePassed}
+              className={`btn-primary flex-1 ${!app ? 'w-full' : ''} ${(!app && isDeadlinePassed) ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
+              onClick={(e) => (!app && isDeadlinePassed) && e.preventDefault()}
             >
-              {app ? "Track Status" : "Start Application"}
+              {app ? "Track Status" : isDeadlinePassed ? "Deadline Closed" : "Start Application"}
             </Link>
             {app && ['Pending', 'Returned'].includes(app.status) && (
               <Link 

@@ -10,7 +10,8 @@ import { studentService } from '../../services/studentService';
 import toast from 'react-hot-toast';
 import { getFriendlyErrorMessage } from '../../utils/errorHelpers';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import { User, Home, ShieldAlert, FileCheck, UploadCloud } from 'lucide-react';
+import { User, Home, ShieldAlert, FileCheck, UploadCloud, Clock } from 'lucide-react';
+import api from '../../services/api';
 
 const schema = z.object({
   academic_year:         z.string().min(4, 'Academic Year is required'),
@@ -189,6 +190,17 @@ export default function ApplicationPage() {
         <p className="font-sans text-on-surface-variant text-lg max-w-2xl leading-relaxed">
           Statutory application for Academic Year {configs?.academic_year || 'Loading...'}.
         </p>
+        {configs?.application_deadline && (
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/15 rounded-sm text-primary">
+            <Clock className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold uppercase tracking-widest leading-none">
+              Deadline: {new Date(configs.application_deadline).toLocaleDateString('en-IN', { 
+                day: 'numeric', month: 'short', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit', hour12: true 
+              })}
+            </span>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
