@@ -328,6 +328,11 @@ async def run_hostel_allotment(hostel_id: int, academic_year: str) -> Dict:
 
     # 7. Finalize insertions in bulk
     if allocations_to_insert:
+        app_ids = [a["application_id"] for a in allocations_to_insert]
+        # Clean up any previously Cancelled/Vacated allocations for these apps to satisfy unique constraints
+        await asyncio.to_thread(
+            lambda: supabase_admin.table("allocation").delete().in_("application_id", app_ids).execute()
+        )
         await asyncio.to_thread(
             lambda: supabase_admin.table("allocation").insert(allocations_to_insert).execute()
         )
