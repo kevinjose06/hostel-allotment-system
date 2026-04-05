@@ -150,3 +150,16 @@ async def get_student_config(user=Depends(get_current_user)):
     resp = supabase_admin.table("system_config").select("*").execute()
     config_dict = {item["config_key"]: item["config_value"] for item in resp.data}
     return success_response("System configuration", config_dict)
+
+
+# ── GET /api/v1/student/reservation-categories ──────────────────────────────
+@router.get("/reservation-categories")
+async def get_active_reservation_categories(user=Depends(get_current_user)):
+    resp = (
+        supabase_admin.table("benefit_category")
+        .select("*")
+        .eq("is_active", True)
+        .order("id")
+        .execute()
+    )
+    return success_response("Reservation categories", resp.data)

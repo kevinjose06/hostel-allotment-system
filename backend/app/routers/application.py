@@ -22,7 +22,7 @@ def _get_student_id(user_id: str) -> int:
 
 
 # ── POST /api/v1/application ─────────────────────────────────────────────────
-@router.post("/", status_code=201)
+@router.post("", status_code=201)
 async def submit_application(
     body: ApplicationSubmitRequest,
     user=Depends(require_role(["student"]))
@@ -85,11 +85,13 @@ async def submit_application(
     # Parallelize insertions
     async def save_all():
         a_task = asyncio.to_thread(lambda: supabase_admin.table("application").insert(app_vals).execute())
-        p_task = asyncio.to_thread(lambda: supabase_admin.table("student_academics").upsert({
-            "student_id": student_id, "family_annual_income": body.family_annual_income,
-            "distance_from_college": body.distance_from_college, "bpl_status": body.bpl_status,
-            "pwd_status": body.pwd_status, "sc_st_status": body.sc_st_status,
-        }, on_conflict="student_id").execute())
+        p_task = asyncio.to_thread(lambda: supabase_admin.table("student_academics").update({
+            "family_annual_income": body.family_annual_income,
+            "distance_from_college": body.distance_from_college,
+            "bpl_status": body.bpl_status,
+            "pwd_status": body.pwd_status,
+            "sc_st_status": body.sc_st_status,
+        }).eq("student_id", student_id).execute())
         return await asyncio.gather(a_task, p_task)
 
     results = await save_all()

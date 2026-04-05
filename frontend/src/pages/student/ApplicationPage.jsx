@@ -76,7 +76,7 @@ export default function ApplicationPage() {
 
   const { data: categories = [] } = useQuery({
     queryKey: ['reservation-categories'],
-    queryFn: () => api.get('/admin/reservation-categories').then(r => r.data.data)
+    queryFn: () => api.get('/student/reservation-categories').then(r => r.data.data)
   });
 
   const { data: configs } = useQuery({
