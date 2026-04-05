@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '../../context/AuthContext';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -61,27 +62,32 @@ export default function ApplicationPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const currentYear = new Date().getFullYear();
+  const { user } = useAuth();
 
   // 1. Fetch Student Profile for Summary
   const { data: profile, isLoading: loadingProfile } = useQuery({
-    queryKey: ['my-profile'],
-    queryFn: () => studentService.getProfile()
+    queryKey: ['my-profile', user?.id],
+    queryFn: () => studentService.getProfile(),
+    enabled: !!user?.id
   });
 
   // 2. Check for existing application
   const { data: existing, isLoading: loadingApp } = useQuery({
-    queryKey: ['my-application'],
-    queryFn: () => applicationService.getMyApplication()
+    queryKey: ['my-application', user?.id],
+    queryFn: () => applicationService.getMyApplication(),
+    enabled: !!user?.id
   });
 
   const { data: categories = [] } = useQuery({
-    queryKey: ['reservation-categories'],
-    queryFn: () => api.get('/student/reservation-categories').then(r => r.data.data)
+    queryKey: ['reservation-categories', user?.id],
+    queryFn: () => api.get('/student/reservation-categories').then(r => r.data.data),
+    enabled: !!user?.id
   });
 
   const { data: configs } = useQuery({
-    queryKey: ['system-configs'],
-    queryFn: () => api.get('/student/config').then(r => r.data.data)
+    queryKey: ['system-configs', user?.id],
+    queryFn: () => api.get('/student/config').then(r => r.data.data),
+    enabled: !!user?.id
   });
 
   const activeCategories = categories.filter(c => c.is_active);
@@ -351,21 +357,21 @@ return (
 
                 {pwd_status && !activeCategories.some(c => c.code === 'PWD' && selected_category_ids.includes(c.id)) && (
                   <div>
-                    <label className="form-label">PWD Verification Certificate <span className="text-error">*</span></label>
+                    <label className="form-label">PWD Verification Certificate(PDF/JPG)<span className="text-error">*</span></label>
                     <input {...register('pwd_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                     {errors.pwd_certificate && <p className="form-error">{errors.pwd_certificate.message}</p>}
                   </div>
                 )}
                 {bpl_status && !activeCategories.some(c => c.code === 'BPL' && selected_category_ids.includes(c.id)) && (
                   <div>
-                    <label className="form-label">BPL Verification Certificate <span className="text-error">*</span></label>
+                    <label className="form-label">BPL Verification Certificate(PDF/JPG)<span className="text-error">*</span></label>
                     <input {...register('bpl_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                     {errors.bpl_certificate && <p className="form-error">{errors.bpl_certificate.message}</p>}
                   </div>
                 )}
                 {sc_st_status && !activeCategories.some(c => c.code === 'SCST' && selected_category_ids.includes(c.id)) && (
                   <div>
-                    <label className="form-label">SC/ST Verification Certificate <span className="text-error">*</span></label>
+                    <label className="form-label">SC/ST Verification Certificate(PDF/JPG)<span className="text-error">*</span></label>
                     <input {...register('sc_st_certificate')} type="file" className="input mt-2 py-3 px-4 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20" />
                     {errors.sc_st_certificate && <p className="form-error">{errors.sc_st_certificate.message}</p>}
                   </div>

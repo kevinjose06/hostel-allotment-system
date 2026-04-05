@@ -18,6 +18,7 @@ async def get_current_user(
             raise HTTPException(status_code=401, detail="Invalid token")
             
         # Ensure role is available in metadata for downstream checks
+        print(f"✅ [AUTH] Identified User: {response.user.id} ({response.user.email})")
         return response.user
     except Exception as e:
         # CRITICAL: This log will appear in your Render 'Logs' tab

@@ -7,8 +7,9 @@ export default function StudentProfile() {
   const { user } = useAuth();
   
   const { data: profile, isLoading } = useQuery({
-    queryKey: ['my-profile'],
-    queryFn: () => studentService.getProfile()
+    queryKey: ['my-profile', user?.id],
+    queryFn: () => studentService.getProfile(),
+    enabled: !!user?.id
   });
 
   if (isLoading) return <LoadingSpinner />;

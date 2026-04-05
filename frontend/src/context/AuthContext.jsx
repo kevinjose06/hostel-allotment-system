@@ -1,10 +1,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import api from '../services/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
+  const qc = useQueryClient();
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -67,6 +69,7 @@ export function AuthProvider({ children }) {
   const signOut = async () => {
     setLoading(true);
     await supabase.auth.signOut();
+    qc.clear(); // Complete cache purge for security
     setUser(null);
     setUserRole(null);
     setLoading(false);

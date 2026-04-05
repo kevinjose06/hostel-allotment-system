@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+import asyncio
 from typing import Optional
 from app.config.supabase import supabase_admin
 from app.middleware.auth import get_current_user, require_role
@@ -8,16 +9,31 @@ from app.utils.response import success_response
 router = APIRouter(prefix="/api/v1/application", tags=["Application"])
 
 
-def _get_student_id(user_id: str) -> int:
+def _get_student_id(user_id: str, email: str = None) -> int:
+    # 1. Try by auth_uid (Priority)
     resp = (
         supabase_admin.table("student")
         .select("student_id")
         .eq("auth_uid", user_id)
-        .single()
+        .maybe_single()
         .execute()
     )
-    if not resp or not getattr(resp, 'data', None):
+    
+    # 2. Fallback to Email (Heals broken auth links)
+    if not resp.data and email:
+        print(f"⚠️ Identity Fallback (Application): UID {user_id} not found. Trying email {email}")
+        resp = (
+            supabase_admin.table("student")
+            .select("student_id")
+            .ilike("email", email)
+            .maybe_single()
+            .execute()
+        )
+
+    if not resp.data:
+        print(f"❌ Identity Error (Application): No record for UID {user_id} / Email {email}")
         raise HTTPException(status_code=404, detail="Student record not found")
+        
     return resp.data["student_id"]
 
 
@@ -27,19 +43,26 @@ async def submit_application(
     body: ApplicationSubmitRequest,
     user=Depends(require_role(["student"]))
 ):
-    import asyncio
-
     # 1. Fetch student info and deadline in parallel
     async def get_base_data():
-        s_task = asyncio.to_thread(lambda: supabase_admin.table("student").select("student_id, class(advisor_id)").eq("auth_uid", user.id).single().execute())
+        s_task = asyncio.to_thread(lambda: supabase_admin.table("student").select("student_id, class(advisor_id)").eq("auth_uid", user.id).maybe_single().execute())
         c_task = asyncio.to_thread(lambda: supabase_admin.table("system_config").select("config_value").eq("config_key", "application_deadline").maybe_single().execute())
         return await asyncio.gather(s_task, c_task)
 
     student_res, config_res = await get_base_data()
-    if not student_res or not getattr(student_res, 'data', None): raise HTTPException(status_code=404, detail="Student not found")
     
-    student_id = student_res.data.get("student_id")
-    advisor_id = (student_res.data.get("class", {}) or {}).get("advisor_id")
+    # Robust Identity Fallback for submission
+    student_data = student_res.data if student_res and getattr(student_res, 'data', None) else None
+    if not student_data:
+        print(f"⚠️ Submission Identity Fallback: UID {user.id} not found. Trying email {user.email}")
+        fallback_res = await asyncio.to_thread(lambda: supabase_admin.table("student").select("student_id, class(advisor_id)").ilike("email", user.email).maybe_single().execute())
+        student_data = fallback_res.data if fallback_res and getattr(fallback_res, 'data', None) else None
+
+    if not student_data:
+        raise HTTPException(status_code=404, detail="Student record not found. Please contact the office.")
+    
+    student_id = student_data.get("student_id")
+    advisor_id = (student_data.get("class", {}) or {}).get("advisor_id")
     
     print(f"DEBUG: Submitting application for Student ID: {student_id}, Advisor ID: {advisor_id}")
 
@@ -118,7 +141,7 @@ async def submit_application(
 # ── GET /api/v1/application/my ───────────────────────────────────────────────
 @router.get("/my")
 async def get_my_application(user=Depends(get_current_user)):
-    student_id = _get_student_id(user.id)
+    student_id = _get_student_id(user.id, user.email)
 
     resp = (
         supabase_admin.table("application")
@@ -150,7 +173,7 @@ async def resubmit_application(
     body: ApplicationResubmitRequest,
     user=Depends(require_role(["student"]))
 ):
-    student_id = _get_student_id(user.id)
+    student_id = _get_student_id(user.id, user.email)
 
     # Check deadline
     config_resp = (
@@ -226,7 +249,6 @@ async def resubmit_application(
                     }, on_conflict="student_id,document_type").execute()
                 ))
         if d_tasks:
-            import asyncio
             await asyncio.gather(*d_tasks)
 
     if not resp or not getattr(resp, 'data', None):

@@ -11,13 +11,15 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   
   const { data: app, isLoading: isAppLoading } = useQuery({
-    queryKey: ['my-application'],
-    queryFn: () => applicationService.getMyApplication()
+    queryKey: ['my-application', user?.id],
+    queryFn: () => applicationService.getMyApplication(),
+    enabled: !!user?.id
   });
 
   const { data: config, isLoading: isConfigLoading } = useQuery({
-    queryKey: ['student-config'],
-    queryFn: () => studentService.getSystemConfig()
+    queryKey: ['student-config', user?.id],
+    queryFn: () => studentService.getSystemConfig(),
+    enabled: !!user?.id
   });
 
   const isLoading = isAppLoading || isConfigLoading;
@@ -54,9 +56,9 @@ export default function StudentDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="flex flex-wrap justify-center gap-8">
         {/* Application Status Widget */}
-        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] min-w-[320px] hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-6">
             <div className="p-3 bg-surface-container-low text-primary rounded-md">
               <FileText className="h-6 w-6" />
@@ -90,7 +92,7 @@ export default function StudentDashboard() {
         </div>
 
         {/* Profile Widget */}
-        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col h-full hover:shadow-lg transition-shadow duration-300">
+        <div className="bg-surface-container-lowest rounded-md shadow-ambient border border-outline-variant/10 p-8 flex flex-col w-full md:w-[calc(50%-1rem)] lg:w-[calc(33.333%-1.5rem)] min-w-[320px] hover:shadow-lg transition-shadow duration-300">
           <div className="flex items-start justify-between mb-6">
             <div className="p-3 bg-surface-container-low text-primary rounded-md">
               <User className="h-6 w-6" />
