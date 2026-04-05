@@ -1,4 +1,4 @@
-# 🏰 Hostel Allotment System: Institutional Management Portal
+# Hostel Allotment System: Institutional Management Portal
 
 ### **Overview & Abstract**
 The **Hostel Allotment System** is an end-to-end digital infrastructure designed for **RIT Kottayam** to modernize and automate the student housing lifecycle. By replacing manual, labor-intensive processes with a high-performance, merit-based engine, the system ensures 100% transparency, administrative efficiency, and institutional fairness in seat allocation.
@@ -7,7 +7,7 @@ Built on a robust architecture combining **FastAPI** for core business logic and
 
 ---
 
-### **✨ Core Architectural Pillars**
+### ** Core Architectural Pillars**
 
 #### **1. The Two-Phase Allotment Engine**
 The hallmark of the system is its automated allotment algorithm. It calculates a normalized **Merit Score** based on family annual income (inverse-weighted) and physical distance from the campus. 
@@ -24,7 +24,7 @@ The system distributes administrative burden by involving **Class Advisors** dir
 
 ---
 
-### **🚀 Global Tech Stack**
+### ** Global Tech Stack**
 
 | Layer | Technologies |
 | :--- | :--- |
@@ -35,7 +35,7 @@ The system distributes administrative burden by involving **Class Advisors** dir
 
 ---
 
-### **👥 Role-Specific Capabilities**
+### ** Role-Specific Capabilities**
 
 - **Students:** Manage digital profiles, upload mandatory certificates, and track allotment status in real-time.
 - **Class Advisors:** Review and verify departmental applications; provide "Return-for-Clarification" feedback to students.
@@ -44,7 +44,7 @@ The system distributes administrative burden by involving **Class Advisors** dir
 
 ---
 
-### **📂 Project Repository Structure**
+### ** Project Repository Structure**
 
 - `/frontend`: Responsive React Single-Page Application (SPA).
 - `/backend`: Scalable FastAPI server handling the Allotment Engine and Staff APIs.
