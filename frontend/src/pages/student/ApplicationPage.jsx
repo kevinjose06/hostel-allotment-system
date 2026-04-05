@@ -167,19 +167,19 @@ export default function ApplicationPage() {
     );
   }
 
-  const onSubmit = async (data) => {
+    const loadingToast = toast.loading(isEditing ? 'Updating application...' : 'Uploading documents and submitting...');
     try {
       if (isEditing) {
         await applicationService.updateApplication(existing.application_id, data);
-        toast.success('Application updated successfully!');
+        toast.success('Application updated successfully!', { id: loadingToast });
       } else {
         await applicationService.submitApplication(data);
-        toast.success('Your official application has been submitted successfully!');
+        toast.success('Your official application has been submitted successfully!', { id: loadingToast });
       }
       qc.invalidateQueries(['my-application']);
       navigate('/student/status');
     } catch (err) {
-      toast.error(getFriendlyErrorMessage(err));
+      toast.error(getFriendlyErrorMessage(err), { id: loadingToast });
     }
   };
 

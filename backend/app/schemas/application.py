@@ -13,6 +13,7 @@ class ApplicationSubmitRequest(BaseModel):
     guardian_name: str
     guardian_contact: str
     selected_category_ids: list[int] = []
+    documents: Optional[list[dict]] = None  # [{ "path": "...", "docType": "..." }]
 
 
 class ApplicationResubmitRequest(BaseModel):
@@ -26,6 +27,7 @@ class ApplicationResubmitRequest(BaseModel):
     guardian_name: Optional[str] = None
     guardian_contact: Optional[str] = None
     selected_category_ids: Optional[list[int]] = None
+    documents: Optional[list[dict]] = None
 
 
 class AdvisorActionRequest(BaseModel):

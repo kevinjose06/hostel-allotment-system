@@ -92,7 +92,24 @@ async def submit_application(
             "pwd_status": body.pwd_status,
             "sc_st_status": body.sc_st_status,
         }).eq("student_id", student_id).execute())
-        return await asyncio.gather(a_task, p_task)
+        
+        # 3. Document linkage (Parallelize with academics)
+        d_tasks = []
+        if body.documents:
+            for doc in body.documents:
+                doc_path = doc.get("path")
+                doc_type = doc.get("docType")
+                if doc_path and doc_type:
+                    d_tasks.append(asyncio.to_thread(lambda p=doc_path, t=doc_type: 
+                        supabase_admin.table("student_document").upsert({
+                            "student_id": student_id,
+                            "document_type": t,
+                            "file_path": p,
+                            "verification_status": "Pending"
+                        }, on_conflict="student_id,document_type").execute()
+                    ))
+        
+        return await asyncio.gather(a_task, p_task, *d_tasks)
 
     results = await save_all()
     return success_response("Application submitted", results[0].data[0])
@@ -192,6 +209,26 @@ async def resubmit_application(
         .in_("status", ["Pending", "Returned"]) # Allow editing both
         .execute()
     )
+    
+    # Update documents if provided
+    if body.documents:
+        d_tasks = []
+        for doc in body.documents:
+            doc_path = doc.get("path")
+            doc_type = doc.get("docType")
+            if doc_path and doc_type:
+                d_tasks.append(asyncio.to_thread(lambda p=doc_path, t=doc_type: 
+                    supabase_admin.table("student_document").upsert({
+                        "student_id": student_id,
+                        "document_type": t,
+                        "file_path": p,
+                        "verification_status": "Pending"
+                    }, on_conflict="student_id,document_type").execute()
+                ))
+        if d_tasks:
+            import asyncio
+            await asyncio.gather(*d_tasks)
+
     if not resp or not getattr(resp, 'data', None):
         raise HTTPException(
             status_code=404,

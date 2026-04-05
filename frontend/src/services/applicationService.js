@@ -61,26 +61,35 @@ export const applicationService = {
       sc_st_certificate: 'Caste_Certificate'
     };
 
-    const uploadedDocs = [];
+    // 1. Prepare upload tasks
+    const uploadTasks = [];
+    
+    // Standard documents
     for (const field of docFields) {
       const files = applicationData[field];
       if (files && files.length > 0) {
-        const result = await this.uploadDocument(user.id, field, files[0]);
-        // Use the mapped DB enum name
-        uploadedDocs.push({ ...result, docType: docTypeMap[field] || 'Other' });
+        uploadTasks.push(
+          this.uploadDocument(user.id, field, files[0])
+            .then(res => ({ ...res, docType: docTypeMap[field] || 'Other' }))
+        );
       }
     }
-
-    // Map dynamic certificates if any
+    
+    // Dynamic category documents
     const dynamicCerts = applicationData.dynamic_certificates || {};
     for (const [code, file] of Object.entries(dynamicCerts)) {
       if (file) {
-        const result = await this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file);
-        uploadedDocs.push({ ...result, docType: `Category_${code}` });
+        uploadTasks.push(
+          this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file)
+            .then(res => ({ ...res, docType: `Category_${code}` }))
+        );
       }
     }
-
-    // 2. Submit via Backend API
+    
+    // 2. Perform parallel uploads
+    const uploadedDocs = await Promise.all(uploadTasks);
+    
+    // 3. Submit via Backend API
     const response = await api.post('/application', {
       academic_year: applicationData.academic_year,
       family_annual_income: applicationData.family_annual_income,
@@ -91,7 +100,8 @@ export const applicationService = {
       home_address: applicationData.home_address,
       guardian_name: applicationData.guardian_name,
       guardian_contact: applicationData.guardian_contact,
-      selected_category_ids: applicationData.selected_category_ids || []
+      selected_category_ids: applicationData.selected_category_ids || [],
+      documents: uploadedDocs // Pass the paths and types to the backend
     });
 
     // 3. Document metadata is handled by the backend's parallel tasks or can be managed
@@ -119,25 +129,33 @@ export const applicationService = {
       sc_st_certificate: 'Caste_Certificate'
     };
 
-    const uploadedDocs = [];
+    // 1. Prepare upload tasks
+    const uploadTasks = [];
     for (const field of docFields) {
       const files = applicationData[field];
       if (files && files.length > 0) {
-        const result = await this.uploadDocument(user.id, field, files[0]);
-        uploadedDocs.push({ ...result, docType: docTypeMap[field] || 'Other' });
+        uploadTasks.push(
+          this.uploadDocument(user.id, field, files[0])
+            .then(res => ({ ...res, docType: docTypeMap[field] || 'Other' }))
+        );
       }
     }
-
+    
     // Map dynamic certificates if any
     const dynamicCerts = applicationData.dynamic_certificates || {};
     for (const [code, file] of Object.entries(dynamicCerts)) {
       if (file) {
-        const result = await this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file);
-        uploadedDocs.push({ ...result, docType: `Category_${code}` });
+        uploadTasks.push(
+          this.uploadDocument(user.id, `cat_${code.toLowerCase()}`, file)
+            .then(res => ({ ...res, docType: `Category_${code}` }))
+        );
       }
     }
-
-    // 2. Update via Backend API
+    
+    // 2. Perform parallel uploads
+    const uploadedDocs = await Promise.all(uploadTasks);
+    
+    // 3. Update via Backend API
     const response = await api.put('/application/my', {
       academic_year: applicationData.academic_year,
       family_annual_income: applicationData.family_annual_income,
@@ -148,7 +166,8 @@ export const applicationService = {
       home_address: applicationData.home_address,
       guardian_name: applicationData.guardian_name,
       guardian_contact: applicationData.guardian_contact,
-      selected_category_ids: applicationData.selected_category_ids || []
+      selected_category_ids: applicationData.selected_category_ids || [],
+      documents: uploadedDocs
     });
 
     // 3. Document metadata update is handled by the backend's parallel tasks.
