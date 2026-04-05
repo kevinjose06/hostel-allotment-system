@@ -148,7 +148,7 @@ async def get_my_application(user=Depends(get_current_user)):
         .select("""
             *,
             student ( 
-                first_name, last_name, college_id,
+                first_name, middle_name, last_name, college_id,
                 class ( degree_program, department, year, division )
             ),
             allocation (

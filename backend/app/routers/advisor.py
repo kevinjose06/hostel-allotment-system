@@ -40,7 +40,7 @@ async def get_my_applications(
         .select("""
             *,
             student (
-                college_id, first_name, last_name, gender, email, contact_number,
+                college_id, first_name, middle_name, last_name, gender, email, contact_number,
                 class ( degree_program, department, year, division )
             )
         """)
@@ -80,7 +80,7 @@ async def get_application_detail(application_id: int, user=_any_staff):
     query = supabase_admin.table("application").select("""
         *,
         student (
-            college_id, first_name, last_name, gender, email, contact_number,
+            college_id, first_name, middle_name, last_name, gender, email, contact_number,
             class ( degree_program, department, year, division )
         )
     """).eq("application_id", application_id)
