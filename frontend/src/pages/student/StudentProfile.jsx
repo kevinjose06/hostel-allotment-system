@@ -30,7 +30,7 @@ export default function StudentProfile() {
             {s.first_name?.[0]}{s.middle_name?.[0] || ''}{s.last_name?.[0]}
           </div>
           <div className="text-center md:text-left">
-            <h2 className="font-serif text-3xl text-primary mb-2">{s.first_name} {s.middle_name ? s.middle_name + ' ' : ''}{s.last_name}</h2>
+            <h2 className="font-serif text-3xl text-primary mb-2">{s.full_name}</h2>
             <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-on-surface-variant text-sm font-medium">
               <span className="font-mono tracking-wider">{s.college_id || 'NOT_ASSIGNED'}</span>
               <span className="hidden md:inline">•</span>

@@ -22,8 +22,12 @@ export const studentService = {
 
       // Map to flattened view format that components expect
       const firstName = data.first_name || user.user_metadata?.name?.split(' ')[0] || '';
+      const middleName = data.middle_name || '';
       const lastName = data.last_name || user.user_metadata?.name?.split(' ').slice(1).join(' ') || '';
-      const fullName = data.full_name || user.user_metadata?.name || `${firstName} ${lastName}`.trim() || 'Student';
+      
+      const fullName = data.full_name || user.user_metadata?.name || 
+        [firstName, middleName, lastName].filter(Boolean).join(' ') || 
+        'Student';
 
       return {
         ...data,
