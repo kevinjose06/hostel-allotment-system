@@ -167,6 +167,8 @@ export default function ApplicationPage() {
     );
   }
 
+
+  const onSubmit = async (data) => {
     const loadingToast = toast.loading(isEditing ? 'Updating application...' : 'Uploading documents and submitting...');
     try {
       if (isEditing) {
